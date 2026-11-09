@@ -28,6 +28,11 @@ class _TranslatePageState extends State<TranslatePage> {
   void initState() {
     super.initState();
     sl.ttsService.initialize();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<TranslateBloc>().add(StartDetectionEvent());
+      }
+    });
   }
 
   Future<void> _speakText(String text) async {
@@ -167,6 +172,9 @@ class _TranslatePageState extends State<TranslatePage> {
                     context
                         .read<TranslateBloc>()
                         .add(GestureDetectedEvent(gesture));
+                  },
+                  onToggleDetection: () {
+                    context.read<TranslateBloc>().add(StartDetectionEvent());
                   },
                 );
               },

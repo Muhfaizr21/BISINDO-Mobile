@@ -478,11 +478,16 @@ class BisindoLandmarkClassifier {
         (f.middleSemi ? 1 : 0) +
         (f.ringSemi ? 1 : 0) +
         (f.pinkySemi ? 1 : 0);
-    if (semiCount >= 3 &&
+    final curveCount = (f.indexSemi || f.indexCurled ? 1 : 0) +
+        (f.middleSemi || f.middleCurled ? 1 : 0) +
+        (f.ringSemi || f.ringCurled ? 1 : 0) +
+        (f.pinkySemi || f.pinkyCurled ? 1 : 0);
+    if ((semiCount >= 2 || curveCount >= 3) &&
         f.extendedCount <= 1 &&
-        f.pinchIndex >= 0.48 &&
-        f.pinchIndex <= 1.22 &&
-        _dist(lm[4], lm[5]) / f.palmSize > 0.52) {
+        f.pinchIndex >= 0.35 &&
+        f.pinchIndex <= 1.35 &&
+        _dist(lm[4], lm[5]) / f.palmSize > 0.40 &&
+        !f.isPointingDown) {
       return const Gesture(label: 'C', confidence: 0.93);
     }
 

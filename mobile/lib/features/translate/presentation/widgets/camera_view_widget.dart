@@ -15,6 +15,7 @@ class CameraViewWidget extends StatefulWidget {
   final bool isDetecting;
   final List<HandSkeleton> detectedHands;
   final ValueChanged<Gesture>? onGestureConfirmed;
+  final VoidCallback? onToggleDetection;
 
   const CameraViewWidget({
     super.key,
@@ -22,6 +23,7 @@ class CameraViewWidget extends StatefulWidget {
     required this.isDetecting,
     this.detectedHands = const [],
     this.onGestureConfirmed,
+    this.onToggleDetection,
   });
 
   @override
@@ -38,7 +40,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
 
   String _candidateLabel = '';
   int _holdFrames = 0;
-  static const int _requiredHoldFrames = 18; // ~0.8s steady hold required
+  static const int _requiredHoldFrames = 12; // ~0.5s steady hold for snappy detection
   DateTime? _lastConfirmedAt;
   String _lastConfirmedLabel = '';
 
@@ -103,7 +105,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
       final tipDelta = math.sqrt(
         math.pow(cTip.x - pTip.x, 2) + math.pow(cTip.y - pTip.y, 2),
       );
-      if (wristDelta > 0.042 || tipDelta > 0.055) {
+      if (wristDelta > 0.065 || tipDelta > 0.085) {
         return false;
       }
     }
@@ -427,6 +429,52 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
               ],
             ),
           ),
+
+          // Standby Hint Overlay when not detecting
+          if (!widget.isDetecting)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: widget.onToggleDetection,
+                child: Container(
+                  color: Colors.black26,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white24,
+                          width: 1,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.play_circle_fill,
+                            color: Colors.blueAccent,
+                            size: 20,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Deteksi Standby • Ketuk untuk Memulai',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // Status Badge at Bottom-Left
           Positioned(

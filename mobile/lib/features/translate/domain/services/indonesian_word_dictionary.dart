@@ -63,3 +63,4 @@ class IndonesianWordDictionary {
     return '${words.join(' ')} ';
   }
 }
+
