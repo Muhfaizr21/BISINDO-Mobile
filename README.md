@@ -26,6 +26,9 @@
 * **Nama / Judul Aplikasi**: **BISINDO-Mobile** (*Indonesian Sign Language Mobile Translator & Learning Assistant*)
 * **Deskripsi Singkat Aplikasi**: 
   Aplikasi mobile lintas platform (didukung pada Android dan Web) yang berfungsi sebagai penerjemah bahasa isyarat Indonesia (BISINDO) secara *real-time* berbasis visi komputer (MediaPipe 21-Landmark) serta media edukasi interaktif untuk mempelajari abjad, angka, dan percakapan dasar BISINDO. Aplikasi ini mengusung pendekatan *offline-first* dengan penyimpanan lokal Hive dan sinkronisasi awan berbasis backend Golang (MVC + SOLID) yang terintegrasi dengan Supabase.
+* **Identitas Anggota Kelompok**:
+  1. **MUHAMMAD FAIZ RAMADHAN** (NIM: `2305072`)
+  2. **NAILYAA DLIYAA’AN SYAH** (NIM: `2305075`)
 
 ---
 
@@ -244,12 +247,10 @@ flowchart LR
 
 ### 6.2. Pembagian Peran & Tugas Anggota Tim
 
-| Peran / Bidang | Tanggung Jawab Utama |
-|---|---|
-| **Lead Developer / Mobile Engineer** | Arsitektur Flutter Clean Architecture, manajemen state BLoC, integrasi kamera, implementasi Hive local database, dan koordinasi antarmuka. |
-| **Backend & Cloud Specialist** | Perancangan REST API Golang (MVC + SOLID), integrasi Supabase REST Client, manajemen migrasi SQL, dan penanganan RLS. |
-| **AI / Computer Vision Engineer** | Integrasi MediaPipe Tasks Vision, kalibrasi geometri 21-landmark BISINDO A–Z, kalibrasi toleransi sudut jari, dan filter penolakan pose acak. |
-| **QA, Tester & Technical Writer** | Pembuatan skenario pengujian unit test (Dart & Go), pengujian akurasi gestur langsung, verifikasi responsivitas UI, dan penyusunan dokumentasi proyek. |
+| Anggota Kelompok | Peran / Bidang | Tanggung Jawab Utama |
+|---|---|---|
+| **MUHAMMAD FAIZ RAMADHAN** (`2305072`) | **Lead Developer & Mobile Architect** | Arsitektur Flutter Clean Architecture, integrasi kamera & MediaPipe Tasks Vision, kalibrasi klasifikasi landmark 21 titik (A–Z), implementasi Hive database, dan manajemen BLoC. |
+| **NAILYAA DLIYAA’AN SYAH** (`2305075`) | **Backend, Cloud & UI/UX Specialist** | Perancangan REST API Golang (MVC + SOLID), integrasi Supabase Cloud & RLS policies, penyusunan materi ajar BISINDO, pengujian sistem (QA), dan perancangan antarmuka pengguna. |
 
 ### 6.3. Target Hasil Akhir yang Ingin Dicapai
 * **Akurasi Pengenalan Tinggi**: Gestur abjad BISINDO A–Z terdeteksi secara presisi tanpa salah baca pada huruf bertetangga (seperti `A` vs `X`).
