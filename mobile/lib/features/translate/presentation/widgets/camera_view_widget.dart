@@ -16,6 +16,7 @@ class CameraViewWidget extends StatefulWidget {
   final List<HandSkeleton> detectedHands;
   final ValueChanged<Gesture>? onGestureConfirmed;
   final VoidCallback? onToggleDetection;
+  final BisindoTargetMode targetMode;
 
   const CameraViewWidget({
     super.key,
@@ -24,6 +25,7 @@ class CameraViewWidget extends StatefulWidget {
     this.detectedHands = const [],
     this.onGestureConfirmed,
     this.onToggleDetection,
+    this.targetMode = BisindoTargetMode.alphabet,
   });
 
   @override
@@ -144,7 +146,10 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
     final isSteady = _isHandSteady(skeletons, _prevHands);
     _prevHands = skeletons;
 
-    final classified = BisindoLandmarkClassifier.classifyHands(skeletons);
+    final classified = BisindoLandmarkClassifier.classifyHands(
+      skeletons,
+      mode: widget.targetMode,
+    );
     final isValidGesture =
         classified.label.isNotEmpty && classified.confidence >= 0.88;
 
@@ -354,7 +359,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Huruf: ${_liveGesture!.label} (${(_liveGesture!.confidence * 100).toStringAsFixed(0)}%)',
+                                  '${widget.targetMode == BisindoTargetMode.numbers ? "Angka" : "Huruf"}: ${_liveGesture!.label} (${(_liveGesture!.confidence * 100).toStringAsFixed(0)}%)',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -397,7 +402,9 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Gerakan belum sesuai abjad BISINDO (${_liveHands.length} tangan)',
+                            widget.targetMode == BisindoTargetMode.numbers
+                                ? 'Bentuk angka 0-9 BISINDO (${_liveHands.length} tangan)'
+                                : 'Gerakan belum sesuai abjad BISINDO (${_liveHands.length} tangan)',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -415,6 +422,28 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
             right: 12,
             child: Row(
               children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Text(
+                    widget.targetMode == BisindoTargetMode.numbers
+                        ? '🔢 Angka 0-9'
+                        : '🔤 Abjad A-Z',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
                 if (widget.cameraService.cameras.length > 1)
                   IconButton.filledTonal(
                     tooltip: 'Ganti Kamera',

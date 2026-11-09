@@ -169,5 +169,26 @@ void main() {
       expect(result.label, equals('A'));
       expect(result.confidence, greaterThanOrEqualTo(0.90));
     });
+
+    test('classifies open 5-finger hand as number 5 in numbers mode', () {
+      final hand = HandSkeleton.sample();
+      final result = BisindoLandmarkClassifier.classifyHands(
+        [hand],
+        mode: BisindoTargetMode.numbers,
+      );
+      expect(result.label, equals('5'));
+      expect(result.confidence, greaterThanOrEqualTo(0.90));
+    });
+
+    test('classifies two open hands as number 10 in numbers mode', () {
+      final hand1 = HandSkeleton.sample();
+      final hand2 = HandSkeleton.sample();
+      final result = BisindoLandmarkClassifier.classifyHands(
+        [hand1, hand2],
+        mode: BisindoTargetMode.numbers,
+      );
+      expect(result.label, equals('10'));
+      expect(result.confidence, greaterThanOrEqualTo(0.90));
+    });
   });
 }

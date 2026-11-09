@@ -8,6 +8,7 @@ import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/presentation/bloc/history_event.dart';
 import '../../domain/entities/gesture.dart';
 import '../../domain/services/indonesian_word_dictionary.dart';
+import '../../data/datasources/bisindo_landmark_classifier.dart';
 import '../bloc/translate_bloc.dart';
 import '../bloc/translate_event.dart';
 import '../bloc/translate_state.dart';
@@ -23,6 +24,7 @@ class TranslatePage extends StatefulWidget {
 
 class _TranslatePageState extends State<TranslatePage> {
   bool _isSpeaking = false;
+  BisindoTargetMode _targetMode = BisindoTargetMode.alphabet;
 
   @override
   void initState() {
@@ -50,68 +52,133 @@ class _TranslatePageState extends State<TranslatePage> {
       'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
       'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
     ];
+    const numbers = [
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    ];
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+        return DefaultTabController(
+          length: 2,
+          initialIndex: _targetMode == BisindoTargetMode.numbers ? 1 : 0,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Pilih Gestur Huruf BISINDO',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: letters.map((letter) {
-                    return SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          context.read<TranslateBloc>().add(
-                                GestureDetectedEvent(
-                                  Gesture(label: letter, confidence: 0.96),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Pilih Gestur BISINDO',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const TabBar(
+                    tabs: [
+                      Tab(text: 'Abjad (A - Z)', icon: Icon(Icons.spellcheck, size: 20)),
+                      Tab(text: 'Angka (0 - 9)', icon: Icon(Icons.pin, size: 20)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 220,
+                    child: TabBarView(
+                      children: [
+                        // Abjad Grid
+                        SingleChildScrollView(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: letters.map((letter) {
+                              return SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    context.read<TranslateBloc>().add(
+                                          GestureDetectedEvent(
+                                            Gesture(label: letter, confidence: 0.96),
+                                          ),
+                                        );
+                                  },
+                                  child: Text(
+                                    letter,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               );
-                        },
-                        child: Text(
-                          letter,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            }).toList(),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
+                        // Numbers Grid
+                        SingleChildScrollView(
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            alignment: WrapAlignment.center,
+                            children: numbers.map((numStr) {
+                              return SizedBox(
+                                width: 54,
+                                height: 54,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue.shade50,
+                                    foregroundColor: Colors.blue.shade900,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      side: BorderSide(color: Colors.blue.shade200),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    context.read<TranslateBloc>().add(
+                                          GestureDetectedEvent(
+                                            Gesture(label: numStr, confidence: 0.96),
+                                          ),
+                                        );
+                                  },
+                                  child: Text(
+                                    numStr,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -161,6 +228,38 @@ class _TranslatePageState extends State<TranslatePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Mode Selector: Abjad A-Z vs Angka 0-9
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: SegmentedButton<BisindoTargetMode>(
+                showSelectedIcon: true,
+                segments: const [
+                  ButtonSegment(
+                    value: BisindoTargetMode.alphabet,
+                    label: Text(
+                      'Abjad A-Z',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    icon: Icon(Icons.spellcheck),
+                  ),
+                  ButtonSegment(
+                    value: BisindoTargetMode.numbers,
+                    label: Text(
+                      'Angka 0-9',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    icon: Icon(Icons.pin),
+                  ),
+                ],
+                selected: {_targetMode},
+                onSelectionChanged: (newSelection) {
+                  setState(() {
+                    _targetMode = newSelection.first;
+                  });
+                },
+              ),
+            ),
+
             BlocBuilder<TranslateBloc, TranslateState>(
               builder: (context, state) {
                 final isDetecting = state is TranslateDetecting;
@@ -168,6 +267,7 @@ class _TranslatePageState extends State<TranslatePage> {
                   cameraService: sl.cameraService,
                   isDetecting: isDetecting,
                   detectedHands: const [],
+                  targetMode: _targetMode,
                   onGestureConfirmed: (gesture) {
                     context
                         .read<TranslateBloc>()
@@ -387,7 +487,7 @@ class _TranslatePageState extends State<TranslatePage> {
                       SizedBox(
                         height: 48,
                         child: Tooltip(
-                          message: 'Simulasi Alfabet BISINDO',
+                          message: 'Simulasi Gestur Huruf & Angka BISINDO',
                           child: OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               shape: RoundedRectangleBorder(
@@ -396,7 +496,7 @@ class _TranslatePageState extends State<TranslatePage> {
                             ),
                             onPressed: () => _showAlphabetPicker(context),
                             icon: const Icon(Icons.touch_app),
-                            label: const Text('Input Huruf'),
+                            label: const Text('Input Isyarat'),
                           ),
                         ),
                       ),

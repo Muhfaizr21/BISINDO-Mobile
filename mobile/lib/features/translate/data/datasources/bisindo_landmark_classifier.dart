@@ -2,9 +2,14 @@ import 'dart:math' as math;
 import '../../domain/entities/gesture.dart';
 import '../../domain/entities/hand_landmarks.dart';
 
+enum BisindoTargetMode {
+  alphabet,
+  numbers,
+}
+
 /// High-Precision 21-Landmark BISINDO (Indonesian Sign Language) Classifier.
 /// Calibrated against the 26-class BISINDO Alphabet Dataset (1-hand & 2-hand poses)
-/// with strict rejection of invalid/ambiguous hand poses.
+/// and BISINDO Numbers 0-9 (1-hand & 2-hand composite poses).
 class BisindoLandmarkClassifier {
   static double _dist(NormalizedLandmark a, NormalizedLandmark b) {
     final dx = a.x - b.x;
@@ -158,11 +163,23 @@ class BisindoLandmarkClassifier {
     );
   }
 
-  static Gesture classifyHands(List<HandSkeleton> hands) {
+  static Gesture classifyHands(
+    List<HandSkeleton> hands, {
+    BisindoTargetMode mode = BisindoTargetMode.alphabet,
+  }) {
     final validHands = hands.where((h) => h.landmarks.length >= 21).toList();
     if (validHands.isEmpty) {
       return const Gesture(label: '', confidence: 0.0);
     }
+
+    if (mode == BisindoTargetMode.numbers) {
+      return _classifyNumbers(validHands);
+    }
+
+    return _classifyAlphabet(validHands);
+  }
+
+  static Gesture _classifyAlphabet(List<HandSkeleton> validHands) {
 
     // =========================================================================
     // 1. TWO-HAND BISINDO ALPHABET RULES (A, B, D, F, G, H, K, M, N, P, Q, S, T, W, X, Y)
@@ -602,6 +619,138 @@ class BisindoLandmarkClassifier {
     }
 
     // Any other pose (neutral open palm, relaxed fist, random finger movement) is strictly rejected!
+    return const Gesture(label: '', confidence: 0.0);
+  }
+
+  // =========================================================================
+  // 3. BISINDO NUMBERS 0 - 9 CLASSIFICATION (1-Hand & 2-Hand Rules)
+  // =========================================================================
+  static Gesture _classifyNumbers(List<HandSkeleton> validHands) {
+    if (validHands.isEmpty) {
+      return const Gesture(label: '', confidence: 0.0);
+    }
+
+    // -----------------------------------------------------------------------
+    // 3a. Dua Tangan (Two Hands Composite Counting: 6, 7, 8, 9, 10)
+    // Standar BISINDO: Satu telapak tangan terbuka (5) + jari tangan kedua (1 s/d 5)
+    // -----------------------------------------------------------------------
+    if (validHands.length >= 2) {
+      final f1 = _extractFeatures(validHands[0]);
+      final f2 = _extractFeatures(validHands[1]);
+
+      final h1Is5 = f1.extendedCount >= 4 && f1.thumbOut;
+      final h2Is5 = f2.extendedCount >= 4 && f2.thumbOut;
+
+      if (h1Is5 && h2Is5) {
+        return const Gesture(label: '10', confidence: 0.95);
+      }
+
+      if (h1Is5 || h2Is5) {
+        final countHand = h1Is5 ? f2 : f1;
+
+        // 5 + 4 = 9
+        if ((countHand.indexExt &&
+                countHand.middleExt &&
+                countHand.ringExt &&
+                countHand.pinkyExt &&
+                !countHand.thumbOut) ||
+            countHand.extendedCount == 4) {
+          return const Gesture(label: '9', confidence: 0.94);
+        }
+
+        // 5 + 3 = 8
+        if ((countHand.indexExt &&
+                countHand.middleExt &&
+                countHand.ringExt &&
+                !countHand.pinkyExt) ||
+            (countHand.thumbOut &&
+                countHand.indexExt &&
+                countHand.middleExt &&
+                !countHand.ringExt) ||
+            countHand.extendedCount == 3) {
+          return const Gesture(label: '8', confidence: 0.94);
+        }
+
+        // 5 + 2 = 7
+        if ((countHand.indexExt &&
+                countHand.middleExt &&
+                !countHand.ringExt &&
+                !countHand.pinkyExt) ||
+            countHand.extendedCount == 2) {
+          return const Gesture(label: '7', confidence: 0.94);
+        }
+
+        // 5 + 1 = 6
+        if ((countHand.indexExt &&
+                !countHand.middleExt &&
+                !countHand.ringExt &&
+                !countHand.pinkyExt) ||
+            countHand.extendedCount == 1) {
+          return const Gesture(label: '6', confidence: 0.94);
+        }
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // 3b. Satu Tangan (Single Hand Digits: 0, 1, 2, 3, 4, 5 & 1-Hand Alt)
+    // -----------------------------------------------------------------------
+    final f = _extractFeatures(validHands[0]);
+
+    // Angka 0: Ibu jari dan telunjuk bersentuhan membentuk lingkaran, jari lain melengkung
+    if (f.pinchIndex <= 0.48 &&
+        (f.middleSemi || f.middleCurled) &&
+        (f.ringSemi || f.ringCurled) &&
+        (f.pinkySemi || f.pinkyCurled) &&
+        f.extendedCount <= 1) {
+      return const Gesture(label: '0', confidence: 0.95);
+    }
+
+    // Angka 5: Telapak tangan terbuka lebar, kelima jari terentang
+    if (f.extendedCount >= 4 && f.thumbOut) {
+      return const Gesture(label: '5', confidence: 0.96);
+    }
+
+    // Angka 4: 4 jari tegak ke atas, ibu jari melipat di telapak tangan
+    if (f.indexExt && f.middleExt && f.ringExt && f.pinkyExt && !f.thumbOut) {
+      return const Gesture(label: '4', confidence: 0.96);
+    }
+
+    // Angka 3: 3 jari tegak ke atas (telunjuk, tengah, manis ATAU jempol, telunjuk, tengah)
+    if ((f.indexExt && f.middleExt && f.ringExt && !f.pinkyExt && !f.thumbOut) ||
+        (f.thumbOut && f.indexExt && f.middleExt && !f.ringExt && !f.pinkyExt)) {
+      return const Gesture(label: '3', confidence: 0.95);
+    }
+
+    // Angka 2: 2 jari tegak ke atas (telunjuk dan jari tengah)
+    if (f.indexExt && f.middleExt && !f.ringExt && !f.pinkyExt && !f.thumbOut) {
+      return const Gesture(label: '2', confidence: 0.96);
+    }
+
+    // Angka 1: Hanya 1 jari tegak ke atas (jari telunjuk)
+    if (f.indexExt && !f.middleExt && !f.ringExt && !f.pinkyExt && !f.thumbOut) {
+      return const Gesture(label: '1', confidence: 0.96);
+    }
+
+    // Alternatif 1 Tangan: Angka 6 (Jempol dan kelingking terbuka - Shaka gesture)
+    if (f.thumbOut && f.pinkyExt && !f.indexExt && !f.middleExt && !f.ringExt) {
+      return const Gesture(label: '6', confidence: 0.93);
+    }
+
+    // Alternatif 1 Tangan: Angka 9 (Ibu jari & telunjuk menempel bulat, 3 jari lain tegak)
+    if (f.pinchIndex <= 0.42 && f.middleExt && f.ringExt && f.pinkyExt) {
+      return const Gesture(label: '9', confidence: 0.93);
+    }
+
+    // Alternatif 1 Tangan: Angka 7 (Ibu jari & telunjuk terbuka bentuk L)
+    if (f.thumbOut && f.indexExt && !f.middleExt && !f.ringExt && !f.pinkyExt) {
+      return const Gesture(label: '7', confidence: 0.92);
+    }
+
+    // Alternatif 1 Tangan: Angka 8 (Jari tengah menyentuh jempol, jari lain tegak)
+    if (f.pinchMiddle <= 0.45 && f.indexExt && f.ringExt && f.pinkyExt) {
+      return const Gesture(label: '8', confidence: 0.92);
+    }
+
     return const Gesture(label: '', confidence: 0.0);
   }
 }

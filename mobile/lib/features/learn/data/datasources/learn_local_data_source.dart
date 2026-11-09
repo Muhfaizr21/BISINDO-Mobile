@@ -190,12 +190,66 @@ class LearnLocalDataSourceImpl implements LearnLocalDataSource {
       category: 'Abjad BISINDO',
       imageAsset: 'assets/images/bisindo/Z.jpg',
     ),
-    // Angka & Percakapan
+    // 10 Kelas Angka BISINDO (0 - 9)
     LearnItem(
-      id: 'angka-1-5',
-      title: 'Angka 1 sampai 5',
-      description: 'Hitungan jari dasar dari satu jari terangkat hingga lima jari terbuka lebar.',
-      category: 'Angka',
+      id: 'bisindo-num-0',
+      title: 'Angka 0',
+      description: 'Ibu jari dan jari telunjuk dipertemukan membentuk lingkaran menyerupai angka 0 / huruf O, dengan jari-jari lainnya melipat membulat.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-1',
+      title: 'Angka 1',
+      description: 'Hanya jari telunjuk yang diangkat mengarah ke atas tegak lurus, sementara jari-jari lainnya mengepal rapat.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-2',
+      title: 'Angka 2',
+      description: 'Jari telunjuk dan jari tengah diangkat ke atas secara sejajar, sedangkan jari manis dan kelingking mengepal rapat.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-3',
+      title: 'Angka 3',
+      description: 'Tiga jari (telunjuk, tengah, manis) diangkat ke atas secara tegak, ibu jari dan kelingking melipat ke dalam telapak tangan.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-4',
+      title: 'Angka 4',
+      description: 'Empat jari diangkat ke atas (telunjuk, tengah, manis, kelingking), sedangkan ibu jari dilipat di depan telapak tangan.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-5',
+      title: 'Angka 5',
+      description: 'Telapak tangan dibuka lebar menghadap ke depan dengan kelima jari (ibu jari sampai kelingking) direntangkan terbuka.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-6',
+      title: 'Angka 6',
+      description: 'Dua tangan: satu tangan membuka telapak tangan (5), ditambah satu jari dari tangan lainnya (5 + 1). Pada variasi 1 tangan: ibu jari dan kelingking direntangkan (pose shaka).',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-7',
+      title: 'Angka 7',
+      description: 'Dua tangan: satu tangan membuka telapak tangan (5), ditambah dua jari dari tangan lainnya (5 + 2). Pada variasi 1 tangan: ibu jari dan telunjuk membentuk sudut L.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-8',
+      title: 'Angka 8',
+      description: 'Dua tangan: satu tangan membuka telapak tangan (5), ditambah tiga jari dari tangan lainnya (5 + 3). Pada variasi 1 tangan: jari tengah menyentuh ibu jari dengan jari lain tegak.',
+      category: 'Angka BISINDO',
+    ),
+    LearnItem(
+      id: 'bisindo-num-9',
+      title: 'Angka 9',
+      description: 'Dua tangan: satu tangan membuka telapak tangan (5), ditambah empat jari dari tangan lainnya (5 + 4). Pada variasi 1 tangan: telunjuk dan ibu jari bertemu bulat dengan 3 jari lain tegak.',
+      category: 'Angka BISINDO',
     ),
     LearnItem(
       id: 'salam-dasar',
