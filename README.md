@@ -1,229 +1,286 @@
-# 🤟 BISINDO-Mobile
-
-> **Aplikasi Penerjemah & Pembelajaran Bahasa Isyarat Indonesia (BISINDO) Berbasis Flutter Mobile/Web dan Backend Golang Bersih (MVC + SOLID) Terintegrasi Supabase Cloud.**
+# 🤟 BISINDO-Mobile: Real-Time Indonesian Sign Language Translator & Learning Platform
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](https://golang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Cloud%20Database%20%26%20RLS-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com)
 [![MediaPipe](https://img.shields.io/badge/AI-MediaPipe%20Landmarker-FF6F00?logo=google&logoColor=white)](https://ai.google.dev/edge/mediapipe)
-[![Mobile Architecture](https://img.shields.io/badge/Mobile-Clean%20Architecture-blue)](#arsitektur-sistem)
-[![Backend Architecture](https://img.shields.io/badge/Backend-MVC%20%2B%20SOLID-teal)](#arsitektur-sistem)
+[![Mobile Architecture](https://img.shields.io/badge/Mobile-Clean%20Architecture-blue)](#5-rancangan-arsitektur-dan-alur-sistem)
+[![Backend Architecture](https://img.shields.io/badge/Backend-MVC%20%2B%20SOLID-teal)](#5-rancangan-arsitektur-dan-alur-sistem)
 [![Tests](https://img.shields.io/badge/Tests-Passing%20100%25-brightgreen)](#pengujian-testing)
 
 ---
 
-## 📌 Daftar Isi
-- [Tentang Proyek](#tentang-proyek)
-- [Fitur Utama](#fitur-utama)
-- [Arsitektur Sistem](#arsitektur-sistem)
-- [Struktur Proyek](#struktur-proyek)
-- [Dataset & Model AI BISINDO](#dataset--model-ai-bisindo)
-- [Panduan Instalasi & Menjalankan](#panduan-instalasi--menjalankan)
-  - [1. Konfigurasi Backend (Golang)](#1-konfigurasi-backend-golang)
-  - [2. Migrasi Database (Supabase)](#2-migrasi-database-supabase)
-  - [3. Konfigurasi Aplikasi Mobile / Web (Flutter)](#3-konfigurasi-aplikasi-mobile--web-flutter)
-- [Dokumentasi API Backend](#dokumentasi-api-backend)
-- [Pengujian (Testing)](#pengujian-testing)
-- [Keamanan & Integritas](#keamanan--integritas)
+## 1. Judul dan Identitas Proyek
+
+* **Nama / Judul Aplikasi**: **BISINDO-Mobile** (*Indonesian Sign Language Mobile Translator & Learning Assistant*)
+* **Deskripsi Singkat Aplikasi**: 
+  Aplikasi mobile lintas platform (didukung pada Android dan Web) yang berfungsi sebagai penerjemah bahasa isyarat Indonesia (BISINDO) secara *real-time* berbasis visi komputer (MediaPipe 21-Landmark) serta media edukasi interaktif untuk mempelajari abjad, angka, dan percakapan dasar BISINDO. Aplikasi ini mengusung pendekatan *offline-first* dengan penyimpanan lokal Hive dan sinkronisasi awan berbasis backend Golang (MVC + SOLID) yang terintegrasi dengan Supabase.
 
 ---
 
-## 📖 Tentang Proyek
+## 2. Latar Belakang dan Permasalahan
 
-**BISINDO-Mobile** dikembangkan untuk menjembatani komunikasi inklusif antara komunitas Teman Tuli dengan masyarakat umum di Indonesia. Aplikasi ini mengombinasikan pelacakan gestur tangan secara *real-time* berbasis **MediaPipe 21-Landmark**, klasifikasi gestur abjad BISINDO A–Z dengan filter anti deteksi palsu, arsitektur *offline-first* dengan penyimpanan lokal Hive, serta sinkronisasi awan ke backend **Golang** yang terhubung dengan **Supabase**.
+### 2.1. Permasalahan yang Ingin Diselesaikan
+* **Kesenjangan Komunikasi**: Mayoritas masyarakat umum tidak memahami bahasa isyarat alami Indonesia (BISINDO), sehingga Teman Tuli sering mengalami hambatan dalam mengakses layanan publik, pendidikan, pekerjaan, dan interaksi sosial harian.
+* **Ketergantungan Juru Bahasa Isyarat (JBI)**: Jumlah penerjemah manusia bersertifikasi sangat terbatas dan tidak selalu tersedia setiap saat untuk kebutuhan mendesak.
+* **Keterbatasan Aplikasi Penerjemah Isyarat Konvensional**: Sebagian besar aplikasi yang ada hanya berbasis kamus gambar statis atau memerlukan koneksi internet cepat (*cloud-inference*) yang lambat dan berpotensi menimbulkan isu privasi rekaman video kamera pengguna.
 
----
+### 2.2. Alasan Aplikasi Perlu Dikembangkan
+* **Aksesibilitas & Inklusi Sosial**: Memberikan sarana komunikasi dua arah yang praktis dan portabel langsung dari genggaman ponsel.
+* **Privasi dan Kecepatan Real-Time**: Menggunakan model *on-device vision processing* sehingga pemrosesan video berjalan instan tanpa harus mengunggah frame video ke internet.
+* **Penyelarasan Standar Bahasa Alami**: Menghadirkan materi dan klasifikasi gestur yang sesuai dengan karakter alami BISINDO (didukung pose 1 tangan maupun 2 tangan).
 
-## ✨ Fitur Utama
-
-1. **Terjemahkan (Real-Time Camera Hand Gesture Translation)**
-   * Pelacakan 21 titik sendi tangan *real-time* (1 atau 2 tangan) menggunakan **MediaPipe Tasks Vision**.
-   * Klasifikator geometris presisi tinggi untuk 26 abjad BISINDO (A–Z) yang dikalibrasi terhadap dataset foto nyata.
-   * *Anti-False Positive Filter*: Gerakan acak atau pose tangan santai otomatis ditolak (`confidence: 0.0`), hanya pose mantap dan stabil yang dikonfirmasi.
-   * Visualisasi HUD interaktif: overlay kerangka sendi, indikator kestabilan, dan preview hasil terjemahan.
-
-2. **Belajar Bahasa Isyarat (Learn Module)**
-   * Katalog materi interaktif 26 abjad BISINDO (A sampai Z), angka 1–5, dan sapaan dasar.
-   * Panduan visual dilengkapi deskripsi posisi tangan (1 tangan & 2 tangan) yang selaras dengan data set riil.
-   * Dukungan mode *offline* dengan *automatic fallback* lokal.
-
-3. **Riwayat Terjemahan (History & Cloud Sync)**
-   * *Offline-first storage* menggunakan database NoSQL **Hive**.
-   * Sinkronisasi data dua arah ke Backend Golang dan Cloud Database **Supabase**.
-   * Fitur salin ke clipboard, penghapusan satuan, serta pembersihan riwayat secara aman.
-
-4. **Pemantau Kesehatan Sistem (Live Health Indicator)**
-   * Indikator status koneksi di AppBar yang memantau ketersediaan Backend Golang dan Supabase secara *real-time*.
+### 2.3. Target Pengguna Aplikasi
+1. **Teman Tuli / Komunitas Tuli**: Sebagai alat bantu menyampaikan pesan secara cepat kepada lawan bicara yang belum paham bahasa isyarat.
+2. **Masyarakat Umum & Rekan Dengar**: Teman, keluarga, tenaga kesehatan, frontliner layanan publik, pendidik, dan pelajar yang ingin berkomunikasi atau mempelajari bahasa isyarat secara mandiri.
+3. **Pegiat Inklusi & Akademisi**: Pengguna yang membutuhkan referensi pembelajaran abjad BISINDO berbasis teknologi digital.
 
 ---
 
-## 🏛 Arsitektur Sistem
+## 3. Tujuan dan Fitur Aplikasi
 
-### 1. Mobile (Clean Architecture & BLoC Pattern)
-Arsitektur mobile memisahkan kode ke dalam lapisan yang independen per fitur:
-* **Domain Layer**: Entitas (`Gesture`, `HandSkeleton`, `HistoryItem`, `LearnItem`), kontrak abstract repository, dan use cases murni Dart tanpa dependensi framework.
-* **Data Layer**: Data sources (MediaPipe Web JS interop, TFLite Native/Web abstraction, Hive local cache, HTTP client) dan implementasi repository konkret.
-* **Presentation Layer**: State management terstandarisasi dengan **flutter_bloc**, halaman modular, dan widget komponen reusabel.
+### 3.1. Tujuan Pengembangan Aplikasi
+1. Membangun aplikasi penerjemah gestur tangan BISINDO secara *real-time* menggunakan kamera ponsel/webcam dengan latensi rendah.
+2. Mengembangkan modul pembelajaran interaktif yang menyajikan materi abjad A–Z, angka, dan kosakata dasar BISINDO.
+3. Mengimplementasikan arsitektur perangkat lunak yang andal (*Clean Architecture* pada mobile dan *MVC + SOLID* pada backend) dengan mekanisme sinkronisasi data cloud yang aman (*Row Level Security* Supabase).
 
-### 2. Backend (Golang MVC + SOLID Principles)
-* **Model**: Representasi entitas data (`HistoryItem`, `LearnItem`, `SystemHealth`).
-* **View**: Standarisasi format respons JSON API (`views.RenderSuccess`, `views.RenderError`).
-* **Controller**: HTTP request decoders dan router dispatcher.
-* **Service & Repository Layer**: Abstraksi akses data dan klien Supabase REST PostgREST.
+### 3.2. Daftar Fitur Utama & Penjelasan Fungsinya
 
----
+| Fitur | Fungsi Singkat |
+|---|---|
+| **Terjemahkan (Real-Time Vision Translation)** | Mengakses kamera secara langsung, melacak 21 titik koordinat sendi tangan (1 atau 2 tangan), mengenali abjad A–Z BISINDO dengan filter anti gestur palsu, dan menyusun teks terjemahan secara otomatis. |
+| **Katalog Belajar (Learn Module)** | Menampilkan daftar materi pembelajaran abjad BISINDO A–Z, angka 1–5, dan percakapan dasar yang dilengkapi panduan visual serta deskripsi posisi sendi tangan. |
+| **Riwayat Terjemahan (History & Offline-First)** | Menyimpan setiap hasil terjemahan ke database lokal NoSQL Hive secara instan (*offline-first*) dan menyinkronkannya ke backend Golang / Supabase saat perangkat terhubung internet. |
+| **Manajemen Riwayat** | Memungkinkan pengguna menyalin teks hasil terjemahan ke papan klip (*clipboard*), menghapus riwayat per item, atau membersihkan seluruh riwayat sekaligus. |
+| **Indikator Kesehatan Sistem (Live Health Badge)** | Memantau ketersediaan koneksi Backend Golang dan Supabase Cloud Database secara *real-time* langsung dari antarmuka AppBar. |
 
-## 📁 Struktur Proyek
+### 3.3. Gambaran Alur Penggunaan Aplikasi (User Journey)
 
-```text
-BISINDO-Mobile/
-├── backend/                       # REST API Server (Golang)
-│   ├── cmd/                       # (Opsional) CLI tools
-│   ├── internal/
-│   │   ├── config/                # Environment variable loader (.env)
-│   │   ├── controllers/           # HTTP Handlers (Health, History, Learn)
-│   │   ├── middleware/            # CORS & Request logging
-│   │   ├── models/                # Domain models
-│   │   ├── repositories/          # Abstraksi database & data source
-│   │   ├── routes/                # Router & endpoint mapping
-│   │   ├── services/              # Business logic & integrasi Supabase
-│   │   └── views/                 # JSON presenter standar
-│   ├── migrations/                # Skrip SQL DDL
-│   ├── main.go                    # Entrypoint server & dependency injection
-│   └── go.mod                     # Dependensi Go
-│
-├── mobile/                        # Aplikasi Klien (Flutter)
-│   ├── lib/
-│   │   ├── core/                  # Konstanta, DI (GetIt), Network client, Themes
-│   │   └── features/
-│   │       ├── history/           # Fitur Riwayat (Clean Architecture)
-│   │       ├── learn/             # Fitur Belajar (Clean Architecture)
-│   │       ├── navigation/        # Navigasi & Bottom Bar
-│   │       └── translate/         # Fitur Terjemah Kamera & Landmark Tracking
-│   ├── web/                       # Konfigurasi Web & MediaPipe Vision runtime
-│   ├── test/                      # Unit test & widget test suite
-│   └── pubspec.yaml               # Dependensi Flutter
-│
-├── datasets/                      # Dataset Abjad BISINDO
-│   ├── bisindo_detection/         # 520+ citra BISINDO A–Z
-│   └── bisindo_dataset_summary.json # Metadata & panduan posisi tangan
-│
-└── supabase/                      # Konfigurasi Supabase CLI
-    └── migrations/                # Skrip migrasi terkelola
+```mermaid
+flowchart TD
+    A([Buka Aplikasi BISINDO-Mobile]) --> B{Pilih Menu}
+    
+    B -->|Tab Terjemahkan| C[Buka Kamera & Inisialisasi MediaPipe]
+    C --> D[Arahkan Gestur Tangan ke Kamera]
+    D --> E{Apakah Gestur Valid & Stabil?}
+    E -->|Tidak| F[Tampilkan Indikator Kuning: Gerakan belum sesuai]
+    F --> D
+    E -->|Ya| G[Tampilkan Huruf & Kunci Hasil Terjemahan]
+    G --> H[Simpan Otomatis ke Riwayat Lokal Hive]
+    H --> I[Sinkronisasi Riwayat ke Backend Go & Supabase]
+
+    B -->|Tab Belajar| J[Muat Daftar Materi Abjad & Angka]
+    J --> K[Lihat Detail Panduan Posisi Tangan & Gambar Referensi]
+
+    B -->|Tab Riwayat| L[Buka Riwayat Terjemahan]
+    L --> M[Salin Teks / Hapus Item / Hapus Semua]
 ```
 
 ---
 
-## 🤖 Dataset & Model AI BISINDO
+## 4. Rancangan Teknologi
 
-Proyek ini menggunakan referensi dataset bahasa isyarat BISINDO Indonesia:
-* [Indonesian Sign Language BISINDO Hand Sign Detection Dataset](https://github.com/rhiosutoyo/Indonesian-Sign-Language-BISINDO-Hand-Sign-Detection-Dataset)
-* [Alfabet BISINDO Kaggle](https://www.kaggle.com/datasets/achmadnoer/alfabet-bisindo)
-
-Algoritma pengenalan gestur mengekstrak 21 titik koordinat normalisasi (0.0 sampai 1.0) per tangan, menghitung sudut antar ruas jari, rasio panjang sendi, orientasi vektor, dan irisan garis (misal persilangan telunjuk pada huruf **X** vs pembentukan alas segitiga jempol pada huruf **A**).
+| Komponen | Teknologi | Keterangan & Peran |
+|---|---|---|
+| **Mobile Client** | **Flutter 3.x & Dart 3.x** | Framework antarmuka lintas platform untuk Android dan Web dengan performa tinggi (60 FPS). |
+| **Mobile Architecture** | **Clean Architecture** | Pemisahan tegas antara layer *Domain*, *Data*, dan *Presentation* yang modular dan mudah diuji. |
+| **State Management** | **BLoC (`flutter_bloc`)** | Arsitektur manajemen state berbasis event-driven stream yang terstruktur dan terprediksi. |
+| **Penyimpanan Lokal** | **Hive NoSQL Storage** | Database penyimpanan lokal ringan dan cepat untuk mendukung fitur *offline-first*. |
+| **Backend Service** | **Golang 1.22+** | REST API berperforma tinggi dengan konkurensi efisien dan konsumsi memori rendah. |
+| **Backend Architecture** | **MVC + SOLID Principles** | Pengorganisasian kode bersih: *Model, View, Controller, Service,* dan *Repository pattern*. |
+| **Database & Cloud** | **Supabase (PostgreSQL Cloud)** | Database relational cloud yang dilengkapi *Row Level Security (RLS)*, indeks waktu, dan REST PostgREST. |
+| **AI / Computer Vision** | **MediaPipe Hand Landmarker** | Pelacakan 21 titik koordinat 3D sendi tangan secara *real-time* pada video stream webcam/kamera. |
+| **Klasifikasi Gestur** | **Geometric Landmark Classifier** | Algoritma klasifikasi berbasis sudut sendi ruas jari, rasio Euclidean normalisasi, dan uji irisan segmen garis. |
 
 ---
 
-## 🚀 Panduan Instalasi & Menjalankan
+## 5. Rancangan Arsitektur dan Alur Sistem
+
+### 5.1. Gambaran Arsitektur Aplikasi (Clean Architecture + MVC Backend)
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        FLUTTER CLIENT APPLICATION                       │
+│                                                                        │
+│   [ Presentation Layer ]                                              │
+│   ├── UI Pages (TranslatePage, LearnPage, HistoryPage)                 │
+│   ├── Custom Widgets (CameraViewWidget, HandLandmarksPainter)         │
+│   └── BLoC State Management (HistoryBloc, LearnBloc, NavigationCubit)  │
+│                                                                        │
+│   [ Domain Layer (Pure Dart) ]                                         │
+│   ├── Entities (Gesture, HandSkeleton, HistoryItem, LearnItem)         │
+│   ├── Repositories (Abstract Contracts)                                │
+│   └── Use Cases (GetHistory, SaveHistory, GetMaterials)               │
+│                                                                        │
+│   [ Data Layer ]                                                       │
+│   ├── Local Data Sources (Hive Box, Local Learn Assets)               │
+│   ├── Remote Data Sources (HTTP API Client to Go Backend)              │
+│   └── AI & Vision Services (MediaPipe Web JS Interop / TFLite Service) │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTP REST API (JSON)
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        GOLANG BACKEND SERVER                           │
+│                                                                        │
+│   [ Controller Layer ] ──> [ Middleware (CORS, Request Logger) ]       │
+│   [ Service Layer ]    ──> Business Logic & Data Validation            │
+│   [ Repository Layer ] ──> Abstraksi Database Access                   │
+│   [ View Layer ]       ──> Standarisasi JSON Presenter                 │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTPS (Service Key / RLS)
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        SUPABASE CLOUD DATABASE                         │
+│                                                                        │
+│   ├── Table public.history (id, text, timestamp)                       │
+│   ├── Table public.learn_materials (id, title, description, category)  │
+│   └── Row Level Security (RLS) & Indexes                               │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### 5.2. Diagram Alur Sistem (Flowchart Deteksi & Sinkronisasi)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Pengguna
+    participant App as Flutter Mobile
+    participant MP as MediaPipe Vision
+    participant LocalDB as Hive Local DB
+    participant Backend as Golang Backend
+    participant Supabase as Supabase Cloud
+
+    User->>App: Buka menu Terjemahkan & Mulai Deteksi
+    App->>MP: Kirim frame video kamera
+    MP-->>App: Ekstrak 21 Landmark Tangan
+    App->>App: Eksekusi Klasifikator Geometris BISINDO
+    alt Gestur Valid & Mantap (> 0.8s)
+        App->>User: Update Teks Terjemahan & Highlight Skeleton
+        App->>LocalDB: Simpan ke riwayat lokal (Offline)
+        App->>Backend: POST /api/history
+        Backend->>Supabase: Insert data ke public.history
+        Supabase-->>Backend: Konfirmasi tersimpan
+        Backend-->>App: 201 Created
+        App->>User: Notifikasi "Tersimpan ke Riwayat"
+    else Gestur Salah / Acak
+        App->>User: Status "Gerakan belum sesuai abjad BISINDO" (Reject)
+    end
+```
+
+### 5.3. Rancangan Database (Supabase PostgreSQL)
+
+```sql
+-- 1. Tabel Riwayat Terjemahan (History)
+create table if not exists public.history (
+    id text primary key,
+    text text not null,
+    timestamp timestamptz not null default now()
+);
+create index if not exists idx_history_timestamp on public.history (timestamp desc);
+
+-- 2. Tabel Materi Pembelajaran (Learn Materials)
+create table if not exists public.learn_materials (
+    id text primary key,
+    title text not null,
+    description text not null,
+    category text not null,
+    created_at timestamptz not null default now()
+);
+create index if not exists idx_learn_materials_category on public.learn_materials (category);
+
+-- 3. Row Level Security Policies
+alter table public.history enable row level security;
+alter table public.learn_materials enable row level security;
+create policy "Allow read access to all" on public.history for select using (true);
+create policy "Allow insert access to all" on public.history for insert with check (true);
+create policy "Allow delete access to all" on public.history for delete using (true);
+create policy "Allow read access to learn materials" on public.learn_materials for select using (true);
+```
+
+---
+
+## 6. Rencana Implementasi
+
+### 6.1. Tahapan Pengembangan Aplikasi (Sprint Roadmap)
+
+```mermaid
+flowchart LR
+    A[Tahap 1: Riset & Analisis Data] --> B[Tahap 2: Backend & Database Setup]
+    B --> C[Tahap 3: Implementasi AI Vision]
+    C --> D[Tahap 4: Antarmuka Flutter Clean Arch]
+    D --> E[Tahap 5: Pengujian & Integrasi Final]
+```
+
+1. **Tahap 1 — Riset & Persiapan Dataset**:
+   * Eksplorasi dataset BISINDO (520+ citra dari repositori BISINDO dan Kaggle).
+   * Identifikasi pose 1 tangan dan 2 tangan untuk 26 abjad (A–Z).
+2. **Tahap 2 — Backend & Database Setup**:
+   * Perancangan REST API menggunakan Golang dengan struktur MVC + prinsip SOLID.
+   * Konfigurasi project Supabase Cloud, pembuatan skema DDL, dan pengujian koneksi.
+3. **Tahap 3 — Integrasi Visi Komputer & Landmark Classifier**:
+   * Integrasi runtime MediaPipe Tasks Vision (21 titik koordinat).
+   * Pembuatan algoritma klasifikasi geometris dengan proteksi anti deteksi palsu (pemisahan telunjuk silang huruf `X` vs alas segitiga huruf `A`).
+4. **Tahap 4 — Pengembangan Klien Mobile (Flutter)**:
+   * Penerapan *Clean Architecture* (Domain, Data, Presentation).
+   * Implementasi BLoC untuk alur data riwayat dan katalog materi.
+   * Desain antarmuka responsif ramah pengguna dengan tema modern.
+5. **Tahap 5 — Pengujian, Migrasi, & Dokumentasi**:
+   * Eksekusi migrasi remote Supabase CLI (`supabase db push --remote`).
+   * Pengujian unit test menyeluruh pada backend dan klien mobile (100% PASS).
+   * Penyusunan dokumentasi teknis dan panduan penggunaan.
+
+### 6.2. Pembagian Peran & Tugas Anggota Tim
+
+| Peran / Bidang | Tanggung Jawab Utama |
+|---|---|
+| **Lead Developer / Mobile Engineer** | Arsitektur Flutter Clean Architecture, manajemen state BLoC, integrasi kamera, implementasi Hive local database, dan koordinasi antarmuka. |
+| **Backend & Cloud Specialist** | Perancangan REST API Golang (MVC + SOLID), integrasi Supabase REST Client, manajemen migrasi SQL, dan penanganan RLS. |
+| **AI / Computer Vision Engineer** | Integrasi MediaPipe Tasks Vision, kalibrasi geometri 21-landmark BISINDO A–Z, kalibrasi toleransi sudut jari, dan filter penolakan pose acak. |
+| **QA, Tester & Technical Writer** | Pembuatan skenario pengujian unit test (Dart & Go), pengujian akurasi gestur langsung, verifikasi responsivitas UI, dan penyusunan dokumentasi proyek. |
+
+### 6.3. Target Hasil Akhir yang Ingin Dicapai
+* **Akurasi Pengenalan Tinggi**: Gestur abjad BISINDO A–Z terdeteksi secara presisi tanpa salah baca pada huruf bertetangga (seperti `A` vs `X`).
+* **Nol Deteksi Palsu pada Gerakan Liar**: Gerakan tangan santai, terbuka lima jari biasa, atau gerakan non-isyarat tidak memicu input karakter acak.
+* **Performa Responsif**: Proses pelacakan dan inferensi berjalan *real-time* ($\ge 20$ FPS) pada perangkat standar.
+* **Keandalan Offline-First**: Aplikasi tetap dapat digunakan menerjemahkan dan menyimpan riwayat meski tidak ada jaringan internet, serta menyinkronkan data secara mulus begitu online.
+
+---
+
+## 7. Panduan Instalasi & Menjalankan
 
 ### Prasyarat
 * **Flutter SDK**: 3.x ke atas
 * **Go**: 1.22 ke atas
 * **Browser**: Google Chrome (mendukung WebAssembly & WebRTC webcam)
 
----
-
-### 1. Konfigurasi Backend (Golang)
-
-1. Masuk ke direktori backend:
-   ```bash
-   cd backend
-   ```
-2. Buat file `.env` (atau sesuaikan dari `.env.example`):
-   ```env
-   SUPABASE_URL=https://<your-project-ref>.supabase.co
-   SUPABASE_PUBLISHABLE_KEY=<your-anon-key>
-   SUPABASE_SECRET_KEY=<your-service-role-key>
-   SUPABASE_JWKS_URL=https://<your-project-ref>.supabase.co/auth/v1/.well-known/jwks.json
-   PORT=8080
-   ```
-3. Unduh dependensi dan jalankan server:
-   ```bash
-   go mod download
-   go run main.go
-   ```
-4. Pastikan server berjalan di `http://localhost:8080/api/health`.
-
----
-
-### 2. Migrasi Database (Supabase)
-
-Migrasi skema database dapat dijalankan secara instan menggunakan Supabase CLI:
+### 7.1. Menjalankan Backend (Golang)
 ```bash
-# Link ke project Anda
-npx supabase link --project-ref <your-project-ref>
-
-# Terapkan migrasi ke remote database
-npx supabase db push --remote --yes
+cd backend
+go mod download
+go run main.go
+# Server aktif pada http://localhost:8080
 ```
-*Atau jalankan file SQL `supabase/migrations/20261109000000_create_tables.sql` melalui SQL Editor di Supabase Dashboard.*
 
----
-
-### 3. Konfigurasi Aplikasi Mobile / Web (Flutter)
-
-1. Masuk ke direktori mobile:
-   ```bash
-   cd mobile
-   ```
-2. Pasang paket dependensi Flutter:
-   ```bash
-   flutter pub get
-   ```
-3. Jalankan aplikasi pada Chrome (Web):
-   ```bash
-   flutter run -d chrome
-   ```
-4. Izinkan akses kamera pada browser saat halaman Terjemahkan dibuka.
-
----
-
-## 📡 Dokumentasi API Backend
-
-| Metode | Endpoint | Deskripsi | Status Sukses |
-|---|---|---|---|
-| `GET` | `/api/health` | Status kesehatan backend & konektivitas Supabase | `200 OK` |
-| `GET` | `/api/history` | Mengambil seluruh riwayat terjemahan | `200 OK` |
-| `POST` | `/api/history` | Menyimpan hasil terjemahan baru | `201 Created` |
-| `DELETE` | `/api/history/:id` | Menghapus riwayat terjemahan berdasarkan ID | `200 OK` |
-| `GET` | `/api/learn` | Mengambil katalog materi belajar BISINDO | `200 OK` |
-
----
-
-## 🧪 Pengujian (Testing)
-
-Semua komponen telah melalui pengujian unit dan integrasi otomatis:
-
+### 7.2. Menjalankan Aplikasi Mobile / Web (Flutter)
 ```bash
-# Menjalankan pengujian backend Go
+cd mobile
+flutter pub get
+flutter run -d chrome
+# Buka pada browser Chrome dan berikan izin akses kamera
+```
+
+### 7.3. Menjalankan Pengujian Otomatis
+```bash
+# Pengujian Backend Go
 cd backend && go test -v ./...
 
-# Menjalankan analisis dan pengujian Flutter
+# Pengujian Mobile Flutter
 cd mobile && flutter analyze && flutter test
 ```
 
-Status pengujian:
-* **Backend**: `TestHealthController`, `TestHistoryController`, `TestHistoryService` berstatus **PASS**.
-* **Mobile**: 17 unit test (termasuk klasifikasi akurasi tinggi BISINDO Landmark) berstatus **PASS 100%**.
-
 ---
 
-## 🛡️ Keamanan & Integritas
-* Seluruh kredensial sensitif dikelola via Environment Variables (`.env`) dan dikecualikan dari Git.
-* Row Level Security (RLS) diaktifkan secara ketat pada tabel `public.history` dan `public.learn_materials` di Supabase.
-* Klasifikasi AI berjalan secara *client-side* (*on-device*), sehingga data privasi streaming video kamera pengguna tidak pernah dikirim ke server luar.
-
----
-
-**Dibuat untuk Tugas Besar Pemrograman Mobile.**
+## 8. Lisensi & Hak Cipta
+Proyek ini dikembangkan untuk keperluan akademik Tugas Besar Pemrograman Mobile.
+Dilisensikan di bawah [MIT License](LICENSE).
