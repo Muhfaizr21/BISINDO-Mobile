@@ -110,3 +110,4 @@ func (s *clientImpl) QueryREST(ctx context.Context, method, endpoint string, bod
 	respBytes, err := io.ReadAll(resp.Body)
 	return respBytes, resp.StatusCode, err
 }
+
