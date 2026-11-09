@@ -53,7 +53,7 @@ class BackendHealthService {
     try {
       final response = await client
           .get(Uri.parse(ApiConstants.healthEndpoint))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
