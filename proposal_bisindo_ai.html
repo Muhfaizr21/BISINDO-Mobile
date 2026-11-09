@@ -635,42 +635,42 @@ CREATE POLICY "Allow public read learn" ON public.learn_materials FOR SELECT USI
 
     <h2>6. Rencana Implementasi</h2>
 
-    <h3>6.1. Tahapan Pengembangan Sistem (Sprint Roadmap 5 Pekan)</h3>
+    <h3>6.1. Tahapan Pengembangan Sistem (Sprint Roadmap 13 Hari)</h3>
     <div class="table-container">
-      <div class="table-caption">Tabel 3. Roadmap Tahapan Pengembangan Sistem</div>
+      <div class="table-caption">Tabel 3. Roadmap Tahapan Pengembangan Sistem (Sprint Terpadu 13 Hari)</div>
       <table>
         <thead>
           <tr>
-            <th style="width: 14%;">Fase / Waktu</th>
-            <th style="width: 36%;">Aktivitas Rekayasa Perangkat Lunak</th>
-            <th style="width: 50%;">Luaran Nyata (Deliverables)</th>
+            <th style="width: 15%;">Fase / Waktu</th>
+            <th style="width: 39%;">Aktivitas Rekayasa Perangkat Lunak</th>
+            <th style="width: 46%;">Luaran Nyata (Deliverables)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Pekan 1</strong></td>
-            <td>Riset gestur BISINDO, analisis dataset 21 titik koordinat, konfigurasi Supabase Cloud dan skema DDL.</td>
-            <td>Skema database aktif, dataset acuan koordinat A-Z, dan spesifikasi desain antarmuka DESIGN.md.</td>
+            <td><strong>Hari 1–3</strong></td>
+            <td>Riset gestur BISINDO, perancangan skema database Supabase, konfigurasi Row Level Security, dan inisialisasi monorepo.</td>
+            <td>Skema DDL aktif terindeks, aturan RLS, dataset acuan koordinat A-Z, dan panduan DESIGN.md.</td>
           </tr>
           <tr>
-            <td><strong>Pekan 2</strong></td>
-            <td>Pembangunan REST API Golang (MVC + SOLID), middleware CORS, pengujian unit test backend.</td>
-            <td>Endpoint API /health, /history (GET/POST/DELETE) teruji lolos 100% unit test.</td>
+            <td><strong>Hari 4–6</strong></td>
+            <td>Pembangunan REST API Golang (MVC + SOLID), integrasi on-device MediaPipe 21-landmark, dan perancangan klasifikator geometris.</td>
+            <td>Endpoint API /health &amp; /history teruji 100% unit test, serta pipeline ekstraksi fleksi sendi tangan.</td>
           </tr>
           <tr>
-            <td><strong>Pekan 3</strong></td>
-            <td>Integrasi runtime MediaPipe Tasks Vision WebAssembly, perancangan Geometric Classifier deterministik.</td>
-            <td>Pipeline ekstraksi 21 sendi tangan, deteksi fleksi jari, dan gerbang anti-false positive.</td>
+            <td><strong>Hari 7–9</strong></td>
+            <td>Konstruksi Klien Mobile Flutter Clean Architecture, manajemen state BLoC, integrasi basis data biner lokal NoSQL Hive (offline-first).</td>
+            <td>Aplikasi mobile Android berfungsi penuh: TranslatePage, LearnPage, HistoryPage, dan deteksi 60 FPS.</td>
           </tr>
           <tr>
-            <td><strong>Pekan 4</strong></td>
-            <td>Konstruksi Flutter Clean Architecture, BLoC state management, integrasi Hive biner &amp; UI modern.</td>
-            <td>Aplikasi mobile/web berfungsi penuh: TranslatePage, LearnPage, HistoryPage, dan Floating Dock.</td>
+            <td><strong>Hari 10–11</strong></td>
+            <td>Pengembangan portal web landing page menggunakan React 19 &amp; Tailwind CSS v4, penyusunan dokumentasi teknis, dan integrasi API.</td>
+            <td>Portal web responsif aktif (showcase produk &amp; pintu unduh aplikasi), serta sinkronisasi end-to-end terhubung.</td>
           </tr>
           <tr>
-            <td><strong>Pekan 5</strong></td>
-            <td>Pengujian sistem menyeluruh (QA), optimasi latensi, pembuatan portal web dokumentasi pendukung.</td>
-            <td>Repositori terverifikasi bersih, portal web React pendukung aktif, dan dokumen proposal final.</td>
+            <td><strong>Hari 12–13</strong></td>
+            <td>Pengujian menyeluruh (QA), optimasi latensi (&lt; 15 ms), uji ketahanan offline, finalisasi dokumentasi, dan persiapan rilis proyek akhir.</td>
+            <td>Build APK release, repositori bersih terverifikasi, serta kelengkapan berkas pengumpulan tugas besar.</td>
           </tr>
         </tbody>
       </table>
