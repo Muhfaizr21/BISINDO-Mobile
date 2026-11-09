@@ -1,4 +1,4 @@
-package services
+package supabase
 
 import (
 	"bytes"
@@ -13,18 +13,18 @@ import (
 	"backend/internal/models"
 )
 
-type SupabaseService interface {
+type Client interface {
 	CheckHealth(ctx context.Context) models.SupabaseHealth
 	QueryREST(ctx context.Context, method, endpoint string, body any) ([]byte, int, error)
 }
 
-type supabaseServiceImpl struct {
+type clientImpl struct {
 	cfg        *config.Config
 	httpClient *http.Client
 }
 
-func NewSupabaseService(cfg *config.Config) SupabaseService {
-	return &supabaseServiceImpl{
+func NewClient(cfg *config.Config) Client {
+	return &clientImpl{
 		cfg: cfg,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
@@ -32,14 +32,13 @@ func NewSupabaseService(cfg *config.Config) SupabaseService {
 	}
 }
 
-func (s *supabaseServiceImpl) CheckHealth(ctx context.Context) models.SupabaseHealth {
+func (s *clientImpl) CheckHealth(ctx context.Context) models.SupabaseHealth {
 	health := models.SupabaseHealth{
 		Connected: false,
 		URL:       s.cfg.SupabaseURL,
 		CheckedAt: time.Now().UTC(),
 	}
 
-	// 1. Verify Auth endpoint
 	authURL := fmt.Sprintf("%s/auth/v1/health", s.cfg.SupabaseURL)
 	req, err := http.NewRequestWithContext(ctx, "GET", authURL, nil)
 	if err != nil {
@@ -61,7 +60,6 @@ func (s *supabaseServiceImpl) CheckHealth(ctx context.Context) models.SupabaseHe
 		health.AuthService = fmt.Sprintf("http_%d", resp.StatusCode)
 	}
 
-	// 2. Verify REST API
 	restURL := fmt.Sprintf("%s/rest/v1/", s.cfg.SupabaseURL)
 	restReq, err := http.NewRequestWithContext(ctx, "GET", restURL, nil)
 	if err == nil {
@@ -81,7 +79,7 @@ func (s *supabaseServiceImpl) CheckHealth(ctx context.Context) models.SupabaseHe
 	return health
 }
 
-func (s *supabaseServiceImpl) QueryREST(ctx context.Context, method, endpoint string, body any) ([]byte, int, error) {
+func (s *clientImpl) QueryREST(ctx context.Context, method, endpoint string, body any) ([]byte, int, error) {
 	url := fmt.Sprintf("%s/rest/v1/%s", s.cfg.SupabaseURL, endpoint)
 
 	var reqBody io.Reader
@@ -112,4 +110,3 @@ func (s *supabaseServiceImpl) QueryREST(ctx context.Context, method, endpoint st
 	respBytes, err := io.ReadAll(resp.Body)
 	return respBytes, resp.StatusCode, err
 }
-

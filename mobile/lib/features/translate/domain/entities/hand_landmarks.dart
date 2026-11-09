@@ -45,3 +45,4 @@ class HandSkeleton extends Equatable {
   @override
   List<Object?> get props => [landmarks, handedness, confidence];
 }
+

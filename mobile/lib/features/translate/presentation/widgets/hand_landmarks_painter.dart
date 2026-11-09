@@ -74,3 +74,4 @@ class HandLandmarksPainter extends CustomPainter {
     return oldDelegate.hands != hands || oldDelegate.isFrontCamera != isFrontCamera;
   }
 }
+

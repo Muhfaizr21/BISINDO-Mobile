@@ -9,3 +9,4 @@ abstract class CameraService {
   Future<void> switchCamera();
   Future<void> dispose();
 }
+

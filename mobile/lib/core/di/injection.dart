@@ -14,6 +14,7 @@ import '../../features/learn/domain/repositories/learn_repository.dart';
 import '../../features/learn/domain/usecases/get_learn_materials_usecase.dart';
 import '../../features/learn/presentation/bloc/learn_bloc.dart';
 import '../../features/translate/data/datasources/hand_landmarker_placeholder_data_source.dart';
+import '../../features/translate/data/datasources/tflite_classifier_service.dart';
 import '../../features/translate/data/datasources/translate_local_data_source.dart';
 import '../../features/translate/data/datasources/translate_remote_data_source.dart';
 import '../../features/translate/data/repositories/translate_repository_impl.dart';
@@ -31,6 +32,7 @@ class ServiceLocator {
   // Translate
   late final CameraService cameraService;
   late final HandLandmarkerService handLandmarkerService;
+  late final TfliteClassifierService tfliteClassifierService;
   late final TranslateLocalDataSource translateLocalDataSource;
   late final TranslateRemoteDataSource translateRemoteDataSource;
   late final TranslateRepository translateRepository;
@@ -60,11 +62,13 @@ class ServiceLocator {
 
     // Translate dependencies
     handLandmarkerService = HandLandmarkerPlaceholderDataSource();
+    tfliteClassifierService = TfliteClassifierServiceImpl();
     translateLocalDataSource = TranslateLocalDataSourceImpl();
     translateRemoteDataSource = TranslateRemoteDataSourceImpl();
     translateRepository = TranslateRepositoryImpl(
       localDataSource: translateLocalDataSource,
       remoteDataSource: translateRemoteDataSource,
+      classifierService: tfliteClassifierService,
     );
     translateGestureUseCase = TranslateGestureUseCase(translateRepository);
 

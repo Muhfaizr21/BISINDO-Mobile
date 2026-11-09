@@ -214,3 +214,4 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
     );
   }
 }
+

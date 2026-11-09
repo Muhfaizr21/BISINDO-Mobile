@@ -5,21 +5,21 @@ import (
 	"time"
 
 	"backend/internal/models"
-	"backend/internal/services"
+	"backend/internal/supabase"
 	"backend/internal/views"
 )
 
 type HealthController struct {
-	supabaseService services.SupabaseService
+	supabaseClient supabase.Client
 }
 
-func NewHealthController(ss services.SupabaseService) *HealthController {
-	return &HealthController{supabaseService: ss}
+func NewHealthController(sc supabase.Client) *HealthController {
+	return &HealthController{supabaseClient: sc}
 }
 
 func (c *HealthController) CheckHealth(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	sbHealth := c.supabaseService.CheckHealth(ctx)
+	sbHealth := c.supabaseClient.CheckHealth(ctx)
 
 	overallStatus := "healthy"
 	if !sbHealth.Connected {

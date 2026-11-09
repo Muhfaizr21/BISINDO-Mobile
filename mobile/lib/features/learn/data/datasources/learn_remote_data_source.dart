@@ -25,11 +25,18 @@ class LearnRemoteDataSourceImpl implements LearnRemoteDataSource {
         final List<dynamic> list = json.decode(response.body);
         return list.map((item) {
           final map = item as Map<String, dynamic>;
+          final idStr = map['id']?.toString() ?? '';
+          String? imageAsset = map['image_asset'] as String?;
+          if (imageAsset == null && idStr.startsWith('bisindo-') && idStr.length == 9) {
+            final letter = idStr.substring(8).toUpperCase();
+            imageAsset = 'assets/images/bisindo/$letter.jpg';
+          }
           return LearnItem(
-            id: map['id']?.toString() ?? '',
+            id: idStr,
             title: map['title'] as String? ?? '',
             description: map['description'] as String? ?? '',
             category: map['category'] as String? ?? 'Umum',
+            imageAsset: imageAsset,
           );
         }).toList();
       }

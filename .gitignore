@@ -38,3 +38,8 @@ Thumbs.db
 *.swp
 *.swo
 
+# Raw Datasets
+datasets/bisindo_detection/
+datasets/kaggle_bisindo/
+!datasets/bisindo_dataset_summary.json
+

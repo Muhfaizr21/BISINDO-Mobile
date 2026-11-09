@@ -83,3 +83,4 @@ class CameraServiceImpl implements CameraService {
     _controller = null;
   }
 }
+

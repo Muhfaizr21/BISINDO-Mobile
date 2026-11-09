@@ -13,6 +13,7 @@ import (
 	"backend/internal/repositories"
 	"backend/internal/routes"
 	"backend/internal/services"
+	"backend/internal/supabase"
 )
 
 func main() {
@@ -21,9 +22,9 @@ func main() {
 	log.Printf("Starting Sign Language Translator Backend on port %s", cfg.Port)
 	log.Printf("Connecting to Supabase at: %s", cfg.SupabaseURL)
 
-	supabaseService := services.NewSupabaseService(cfg)
-	historyRepo := repositories.NewMemoryHistoryRepository()
-	learnRepo := repositories.NewDefaultLearnRepository()
+	supabaseClient := supabase.NewClient(cfg)
+	historyRepo := repositories.NewSupabaseHistoryRepository(supabaseClient)
+	learnRepo := repositories.NewSupabaseLearnRepository(supabaseClient)
 
 	historyService := services.NewHistoryService(historyRepo)
 	learnService := services.NewLearnService(learnRepo)
@@ -31,14 +32,14 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	sbHealth := supabaseService.CheckHealth(ctx)
+	sbHealth := supabaseClient.CheckHealth(ctx)
 	if sbHealth.Connected {
 		log.Printf("Supabase status: connected (Auth: %s, REST: %s)", sbHealth.AuthService, sbHealth.RESTService)
 	} else {
 		log.Printf("Supabase warning: %s", sbHealth.Error)
 	}
 
-	healthCtrl := controllers.NewHealthController(supabaseService)
+	healthCtrl := controllers.NewHealthController(supabaseClient)
 	historyCtrl := controllers.NewHistoryController(historyService)
 	learnCtrl := controllers.NewLearnController(learnService)
 
