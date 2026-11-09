@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/backend_status_badge.dart';
 import '../../../history/domain/entities/history_item.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
@@ -8,7 +9,7 @@ import '../../domain/entities/gesture.dart';
 import '../bloc/translate_bloc.dart';
 import '../bloc/translate_event.dart';
 import '../bloc/translate_state.dart';
-import '../widgets/camera_preview_placeholder.dart';
+import '../widgets/camera_view_widget.dart';
 
 class TranslatePage extends StatelessWidget {
   const TranslatePage({super.key});
@@ -37,7 +38,10 @@ class TranslatePage extends StatelessWidget {
             BlocBuilder<TranslateBloc, TranslateState>(
               builder: (context, state) {
                 final isDetecting = state is TranslateDetecting;
-                return CameraPreviewPlaceholder(isDetecting: isDetecting);
+                return CameraViewWidget(
+                  cameraService: sl.cameraService,
+                  isDetecting: isDetecting,
+                );
               },
             ),
             const SizedBox(height: 16),

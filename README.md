@@ -234,3 +234,4 @@ flutter test     # Menjalankan 13 unit, BLoC, dan widget test
 ## 📄 Lisensi
 
 Proyek ini didistribusikan di bawah lisensi MIT. Silakan lihat file `LICENSE` untuk informasi lebih lanjut.
+

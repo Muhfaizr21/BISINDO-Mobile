@@ -17,7 +17,9 @@ import '../../features/translate/data/datasources/hand_landmarker_placeholder_da
 import '../../features/translate/data/datasources/translate_local_data_source.dart';
 import '../../features/translate/data/datasources/translate_remote_data_source.dart';
 import '../../features/translate/data/repositories/translate_repository_impl.dart';
+import '../../features/translate/data/services/camera_service_impl.dart';
 import '../../features/translate/domain/repositories/translate_repository.dart';
+import '../../features/translate/domain/services/camera_service.dart';
 import '../../features/translate/domain/services/hand_landmarker_service.dart';
 import '../../features/translate/domain/usecases/translate_gesture_usecase.dart';
 import '../../features/translate/presentation/bloc/translate_bloc.dart';
@@ -27,6 +29,7 @@ class ServiceLocator {
   late final BackendHealthService backendHealthService;
 
   // Translate
+  late final CameraService cameraService;
   late final HandLandmarkerService handLandmarkerService;
   late final TranslateLocalDataSource translateLocalDataSource;
   late final TranslateRemoteDataSource translateRemoteDataSource;
@@ -53,6 +56,7 @@ class ServiceLocator {
 
   void init() {
     backendHealthService = BackendHealthService();
+    cameraService = CameraServiceImpl();
 
     // Translate dependencies
     handLandmarkerService = HandLandmarkerPlaceholderDataSource();
