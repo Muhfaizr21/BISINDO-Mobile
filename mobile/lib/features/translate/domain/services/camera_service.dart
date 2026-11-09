@@ -7,6 +7,7 @@ abstract class CameraService {
   List<CameraDescription> get cameras;
   CameraDescription? get currentCamera;
   Future<void> switchCamera();
+  Future<void> startImageStream(Function(CameraImage image) onAvailable);
+  Future<void> stopImageStream();
   Future<void> dispose();
 }
-

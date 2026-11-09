@@ -11,7 +11,8 @@ class CameraServiceImpl implements CameraService {
   CameraController? get controller => _controller;
 
   @override
-  bool get isInitialized => _isInitialized && _controller != null && _controller!.value.isInitialized;
+  bool get isInitialized =>
+      _isInitialized && _controller != null && _controller!.value.isInitialized;
 
   @override
   List<CameraDescription> get cameras => _cameras;
@@ -77,10 +78,32 @@ class CameraServiceImpl implements CameraService {
   }
 
   @override
+  Future<void> startImageStream(Function(CameraImage image) onAvailable) async {
+    if (_controller != null &&
+        _controller!.value.isInitialized &&
+        !_controller!.value.isStreamingImages) {
+      try {
+        await _controller!.startImageStream(onAvailable);
+      } catch (_) {}
+    }
+  }
+
+  @override
+  Future<void> stopImageStream() async {
+    if (_controller != null &&
+        _controller!.value.isInitialized &&
+        _controller!.value.isStreamingImages) {
+      try {
+        await _controller!.stopImageStream();
+      } catch (_) {}
+    }
+  }
+
+  @override
   Future<void> dispose() async {
     _isInitialized = false;
+    await stopImageStream();
     await _controller?.dispose();
     _controller = null;
   }
 }
-
