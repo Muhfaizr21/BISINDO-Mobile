@@ -7,13 +7,38 @@ import '../../../history/domain/entities/history_item.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/presentation/bloc/history_event.dart';
 import '../../domain/entities/gesture.dart';
+import '../../domain/services/indonesian_word_dictionary.dart';
 import '../bloc/translate_bloc.dart';
 import '../bloc/translate_event.dart';
 import '../bloc/translate_state.dart';
 import '../widgets/camera_view_widget.dart';
+import '../widgets/smart_word_toolbar.dart';
 
-class TranslatePage extends StatelessWidget {
+class TranslatePage extends StatefulWidget {
   const TranslatePage({super.key});
+
+  @override
+  State<TranslatePage> createState() => _TranslatePageState();
+}
+
+class _TranslatePageState extends State<TranslatePage> {
+  bool _isSpeaking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    sl.ttsService.initialize();
+  }
+
+  Future<void> _speakText(String text) async {
+    final clean = text.trim();
+    if (clean.isEmpty) return;
+    setState(() => _isSpeaking = true);
+    await sl.ttsService.speak(clean);
+    if (mounted) {
+      setState(() => _isSpeaking = false);
+    }
+  }
 
   void _showAlphabetPicker(BuildContext context) {
     const letters = [
@@ -168,78 +193,140 @@ class TranslatePage extends StatelessWidget {
                     resultText != 'Mendeteksi gestur...' &&
                     resultText != 'Deteksi dihentikan';
 
-                return Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                final suggestions =
+                    hasText ? IndonesianWordDictionary.getSuggestions(resultText) : const <String>[];
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Hasil Terjemahan:',
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Hasil Terjemahan:',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                if (hasText)
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          _isSpeaking
+                                              ? Icons.volume_up
+                                              : Icons.volume_up_outlined,
+                                          color: _isSpeaking
+                                              ? Colors.green
+                                              : Colors.blueAccent,
+                                          size: 22,
+                                        ),
+                                        tooltip: 'Suarakan Kalimat (TTS)',
+                                        onPressed: () => _speakText(resultText),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.copy, size: 20),
+                                        tooltip: 'Salin Teks',
+                                        onPressed: () {
+                                          Clipboard.setData(
+                                              ClipboardData(text: resultText));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  'Teks disalin ke papan klip'),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              resultText,
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
+                                fontSize: 22,
+                                color: hasText
+                                    ? Colors.blue.shade800
+                                    : Colors.grey,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            if (hasText)
-                              IconButton(
-                                icon: const Icon(Icons.copy, size: 20),
-                                tooltip: 'Salin Teks',
-                                onPressed: () {
-                                  Clipboard.setData(
-                                      ClipboardData(text: resultText));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Teks disalin ke papan klip'),
-                                      duration: Duration(seconds: 2),
+                            if (gestures.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Gestur Terdeteksi:',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: gestures.map((g) {
+                                  return Chip(
+                                    visualDensity: VisualDensity.compact,
+                                    label: Text(
+                                      '${g.label} (${(g.confidence * 100).toStringAsFixed(0)}%)',
+                                      style: const TextStyle(fontSize: 12),
                                     ),
                                   );
-                                },
+                                }).toList(),
                               ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          resultText,
-                          style: TextStyle(
-                            fontSize: 22,
-                            color: hasText ? Colors.blue.shade800 : Colors.grey,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (gestures.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Gestur Terdeteksi:',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: gestures.map((g) {
-                              return Chip(
-                                visualDensity: VisualDensity.compact,
-                                label: Text(
-                                  '${g.label} (${(g.confidence * 100).toStringAsFixed(0)}%)',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                    SmartWordToolbar(
+                      currentText: hasText ? resultText : '',
+                      suggestions: suggestions,
+                      isSpeaking: _isSpeaking,
+                      onSpeak: () => _speakText(resultText),
+                      onSpace: () {
+                        context.read<TranslateBloc>().add(AppendSpaceEvent());
+                      },
+                      onBackspace: () {
+                        context.read<TranslateBloc>().add(BackspaceEvent());
+                      },
+                      onClear: () {
+                        context.read<TranslateBloc>().add(ClearTranslationEvent());
+                      },
+                      onCopy: () {
+                        Clipboard.setData(ClipboardData(text: resultText));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Teks disalin ke papan klip'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      onSelectSuggestion: (word) {
+                        final updated = IndonesianWordDictionary.applySuggestion(
+                            resultText, word);
+                        context
+                            .read<TranslateBloc>()
+                            .add(SetTranslatedTextEvent(updated));
+                      },
+                    ),
+                  ],
                 );
               },
             ),

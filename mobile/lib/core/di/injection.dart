@@ -22,6 +22,7 @@ import '../../features/translate/data/services/camera_service_impl.dart';
 import '../../features/translate/domain/repositories/translate_repository.dart';
 import '../../features/translate/domain/services/camera_service.dart';
 import '../../features/translate/domain/services/hand_landmarker_service.dart';
+import '../../features/translate/domain/services/tts_service.dart';
 import '../../features/translate/domain/usecases/translate_gesture_usecase.dart';
 import '../../features/translate/presentation/bloc/translate_bloc.dart';
 
@@ -33,6 +34,7 @@ class ServiceLocator {
   late final CameraService cameraService;
   late final HandLandmarkerService handLandmarkerService;
   late final TfliteClassifierService tfliteClassifierService;
+  late final TtsService ttsService;
   late final TranslateLocalDataSource translateLocalDataSource;
   late final TranslateRemoteDataSource translateRemoteDataSource;
   late final TranslateRepository translateRepository;
@@ -63,6 +65,7 @@ class ServiceLocator {
     // Translate dependencies
     handLandmarkerService = HandLandmarkerPlaceholderDataSource();
     tfliteClassifierService = TfliteClassifierServiceImpl();
+    ttsService = TtsServiceImpl();
     translateLocalDataSource = TranslateLocalDataSourceImpl();
     translateRemoteDataSource = TranslateRemoteDataSourceImpl();
     translateRepository = TranslateRepositoryImpl(

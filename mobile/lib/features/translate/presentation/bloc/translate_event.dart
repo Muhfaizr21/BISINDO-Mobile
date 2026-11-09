@@ -23,3 +23,16 @@ class GestureDetectedEvent extends TranslateEvent {
 
 class ClearTranslationEvent extends TranslateEvent {}
 
+class AppendSpaceEvent extends TranslateEvent {}
+
+class BackspaceEvent extends TranslateEvent {}
+
+class SetTranslatedTextEvent extends TranslateEvent {
+  final String text;
+
+  const SetTranslatedTextEvent(this.text);
+
+  @override
+  List<Object?> get props => [text];
+}
+
