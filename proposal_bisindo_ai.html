@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Proposal Tugas Besar - BISINDO AI</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 20mm 18mm 25mm; /* Format Skripsi Resmi: Kiri 2.5cm, Kanan 2cm, Atas/Bawah 1.8cm */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Times New Roman", Times, Georgia, serif;
+      font-size: 9.6pt;
+      line-height: 1.34;
+      color: #000000;
+      background: #ffffff;
+    }
+
+    b, strong {
+      font-weight: bold;
+      -webkit-text-stroke: 0.22px #000000;
+    }
+
+    .page {
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Running Header Formal */
+    .running-header {
+      border-bottom: 0.75pt solid #000000;
+      padding-bottom: 3px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5pt;
+      font-style: italic;
+      color: #000000;
+    }
+
+    /* Cover / Header Dokumen Skripsi */
+    .title-block {
+      text-align: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1.5pt double #000000;
+    }
+
+    .doc-type {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1px;
+    }
+
+    .course-title {
+      font-size: 9.5pt;
+      font-weight: normal;
+      margin-bottom: 5px;
+    }
+
+    .main-title {
+      font-size: 11.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      line-height: 1.24;
+      margin-bottom: 5px;
+    }
+
+    .author-block {
+      font-size: 9pt;
+      margin-top: 3px;
+      line-height: 1.3;
+    }
+
+    /* Section Headings Skripsi */
+    h2 {
+      font-size: 10pt;
+      font-weight: bold;
+      color: #000000;
+      text-transform: uppercase;
+      margin-top: 7px;
+      margin-bottom: 3px;
+      border-bottom: 0.5pt solid #000000;
+      padding-bottom: 1px;
+    }
+
+    h3 {
+      font-size: 9.6pt;
+      font-weight: bold;
+      color: #000000;
+      margin-top: 5px;
+      margin-bottom: 2px;
+    }
+
+    p {
+      text-align: justify;
+      text-indent: 0.8cm;
+      margin-bottom: 4px;
+    }
+
+    p.no-indent {
+      text-indent: 0;
+    }
+
+    ul, ol {
+      margin-left: 1cm;
+      margin-bottom: 4px;
+    }
+
+    li {
+      text-align: justify;
+      margin-bottom: 1.5px;
+      padding-left: 2px;
+    }
+
+    /* Tabel Standar Akademik Skripsi */
+    .table-container {
+      margin: 4px 0 6px 0;
+    }
+
+    .table-caption {
+      font-size: 8.8pt;
+      font-weight: bold;
+      margin-bottom: 2px;
+      text-align: left;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.2pt;
+      line-height: 1.2;
+      margin-bottom: 1px;
+    }
+
+    th {
+      border-top: 1.2pt solid #000000;
+      border-bottom: 0.8pt solid #000000;
+      border-left: none;
+      border-right: none;
+      padding: 3px 4px;
+      font-weight: bold;
+      -webkit-text-stroke: 0.22px #000000;
+      text-align: left;
+      vertical-align: bottom;
+      background: none;
+    }
+
+    td {
+      border-top: none;
+      border-bottom: 0.4pt solid #d1d5db;
+      border-left: none;
+      border-right: none;
+      padding: 2.5px 4px;
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: 1.2pt solid #000000;
+    }
+
+    /* Diagram Skematis Akademik Vektor */
+    .diagram-container {
+      margin: 5px 0 6px 0;
+      text-align: center;
+    }
+
+    .diagram-wrap {
+      border: 1pt solid #000000;
+      padding: 6px;
+      background: #fafafa;
+      margin-bottom: 2px;
+      text-align: left;
+    }
+
+    .diagram-caption {
+      font-size: 8.2pt;
+      font-style: italic;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    /* Kotak Kode SQL Rapi */
+    .sql-code-box {
+      border: 0.75pt solid #000000;
+      padding: 5px 7px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 6.7pt;
+      line-height: 1.2;
+      text-align: left;
+      background: #fafafa;
+      margin-bottom: 2px;
+      white-space: pre;
+    }
+
+    /* Running Footer */
+    .running-footer {
+      margin-top: auto;
+      border-top: 0.5pt solid #000000;
+      padding-top: 3px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5pt;
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== HALAMAN 1 ==================== -->
+  <div class="page">
+    <div class="running-header">
+      <span>Proposal Tugas Besar Pemrograman Mobile</span>
+      <span>Semester Ganjil 2026/2027</span>
+    </div>
+
+    <div class="title-block">
+      <div class="doc-type">PROPOSAL PROYEK AKHIR</div>
+      <div class="course-title">Mata Kuliah: Pemrograman Mobile (IF/CS) - Program Studi Rekayasa Perangkat Lunak</div>
+      <h1 class="main-title">PENGEMBANGAN APLIKASI PENERJEMAH BAHASA ISYARAT INDONESIA (BISINDO AI) BERBASIS ON-DEVICE COMPUTER VISION DAN CLEAN ARCHITECTURE</h1>
+      <div class="author-block">
+        Disusun Oleh Kelompok:<br>
+        1. <strong>Muhammad Faiz Ramadhan</strong> (NIM: 2305072)<br>
+        2. <strong>Nailyaa Dliyaa’an Syah</strong> (NIM: 2305075)
+      </div>
+    </div>
+
+    <h2>1. Judul dan Identitas Proyek</h2>
+    <p class="no-indent">
+      <strong>Nama / Judul Aplikasi:</strong> <em>BISINDO AI: Indonesian Sign Language Vision &amp; Learning Ecosystem</em>.
+    </p>
+    <p class="no-indent">
+      <strong>Identitas Pengembang:</strong> Proyek ini dikerjakan secara berkelompok oleh Muhammad Faiz Ramadhan (NIM: 2305072) dan Nailyaa Dliyaa’an Syah (NIM: 2305075), mahasiswa Program Studi Rekayasa Perangkat Lunak.
+    </p>
+    <p>
+      <strong>Deskripsi Singkat Aplikasi:</strong> BISINDO AI adalah ekosistem perangkat lunak terintegrasi yang berpusat pada aplikasi mobile Android (dibangun menggunakan Flutter) sebagai sistem utama penerjemah Bahasa Isyarat Indonesia (BISINDO) secara langsung (<em>real-time</em>) berbasis visi komputer <em>on-device</em> (Google MediaPipe 21-Landmark). Seluruh komputasi visi berjalan langsung pada perangkat mobile untuk menjamin privasi dan kecepatan. Ekosistem ini dilengkapi portal web responsif berbasis <strong>React JS dan Tailwind CSS</strong> yang berfungsi khusus sebagai <em>landing page</em>, media pengenalan produk, dokumentasi spesifikasi teknis, serta sarana pengunduhan aplikasi. Di sisi peladen, backend REST API berbasis Golang (MVC + SOLID) dan Supabase PostgreSQL menangani sinkronisasi data riwayat secara <em>offline-first</em>.
+    </p>
+
+    <h2>2. Latar Belakang dan Permasalahan</h2>
+
+    <h3>2.1. Permasalahan yang Ingin Diselesaikan</h3>
+    <p>
+      Berdasarkan data Badan Pusat Statistik dan organisasi disabilitas, terdapat lebih dari 2,5 juta penyandang disabilitas rungu dan tuli di Indonesia yang menghadapi hambatan komunikasi struktural dalam kehidupan sehari-hari. Permasalahan mendasar yang diidentifikasi meliputi:
+    </p>
+    <ol>
+      <li><strong>Kesenjangan Komunikasi Dua Arah:</strong> Mayoritas masyarakat dengar tidak memahami bahasa isyarat alami Indonesia (BISINDO), sehingga Teman Tuli mengalami kesulitan saat mengakses fasilitas kesehatan, pelayanan perizinan publik, pendidikan formal, dan kesempatan kerja profesional.</li>
+      <li><strong>Keterbatasan Juru Bahasa Isyarat (JBI):</strong> Jumlah tenaga penerjemah manusia bersertifikasi resmi sangat terbatas dan terkonsentrasi di kota-kota besar, sehingga mustahil hadir mendampingi setiap kebutuhan mendesak harian.</li>
+      <li><strong>Kelemahan Solusi Aplikasi Konvensional:</strong> Solusi perangkat lunak yang beredar saat ini umumnya hanya berupa kamus 2D statis tanpa interaktivitas kamera, atau mengandalkan pengiriman video mentah ke peladen awan (<em>cloud video streaming</em>). Skema pengiriman video ke server awan ini memicu latensi tinggi (&gt; 500 ms), memerlukan kuota besar, dan sangat rentan melanggar privasi rekaman video personal pengguna.</li>
+    </ol>
+
+    <h3>2.2. Alasan dan Urgensi Pengembangan Aplikasi</h3>
+    <p>
+      Pengembangan BISINDO AI mendesak dilakukan karena menghadirkan terobosan <em>On-Device Edge Computing</em>: seluruh pemrosesan frame video kamera dilakukan secara lokal pada memori perangkat (RAM) tanpa mengirim data visual ke internet, menjamin perlindungan privasi mutlak bagi pengguna. Selain itu, latensi pengenalan sangat rendah (&lt; 15 ms per frame pada 60 FPS), menghasilkan dialog yang mengalir alami. Sistem juga mematuhi standarisasi PUSBISINDO dengan mendukung pembentukan gestur satu tangan maupun dua tangan.
+    </p>
+
+    <h3>2.3. Target Pengguna Aplikasi</h3>
+    <ol>
+      <li><strong>Komunitas Tuli / Teman Tuli:</strong> Sebagai sarana asistif portabel untuk menyampaikan pesan dan kebutuhan secara mandiri kepada masyarakat dengar tanpa rasa canggung.</li>
+      <li><strong>Masyarakat Umum dan Tenaga Pelayanan Publik:</strong> Tenaga medis, frontliner kantor pemerintahan, keluarga, dan pengajar yang perlu berkomunikasi secara cepat dan akurat dengan Teman Tuli.</li>
+      <li><strong>Pelajar dan Penggiat Inklusi:</strong> Pengguna pemula yang ingin mempelajari abjad dan tata isyarat BISINDO melalui sistem latihan mandiri berbasis kamera.</li>
+    </ol>
+
+    <div class="running-footer">
+      <span>Proposal Proyek Akhir Pemrograman Mobile | Program Studi Rekayasa Perangkat Lunak</span>
+      <span>Halaman 1</span>
+    </div>
+  </div>
+
+  <!-- ==================== HALAMAN 2 ==================== -->
+  <div class="page">
+    <div class="running-header">
+      <span>Proposal Tugas Besar Pemrograman Mobile</span>
+      <span>3. Tujuan dan Fitur Aplikasi</span>
+    </div>
+
+    <h2>3. Tujuan dan Fitur Aplikasi</h2>
+
+    <h3>3.1. Tujuan Pengembangan Aplikasi</h3>
+    <ol>
+      <li>Membangun modul penerjemah visi kamera real-time yang mampu mendeteksi 21 titik koordinat 3D tangan dan mengklasifikasikan abjad A-Z BISINDO dengan latensi di bawah 15 ms pada kecepatan 60 FPS.</li>
+      <li>Menyediakan modul pembelajaran edukatif interaktif berisikan katalog materi abjad A-Z, angka 1-5, dan kosakata percakapan dasar yang dilengkapi visualisasi posisi kerangka sendi tangan dinamis.</li>
+      <li>Menerapkan arsitektur perangkat lunak berstandar industri melalui Flutter Clean Architecture pada klien mobile dan pola MVC serta prinsip SOLID pada peladen Golang, didukung kapabilitas <em>offline-first</em> dengan Hive NoSQL dan sinkronisasi awan Supabase.</li>
+    </ol>
+
+    <h3>3.2. Daftar Fitur Utama dan Penjelasan Fungsinya</h3>
+    <div class="table-container">
+      <div class="table-caption">Tabel 1. Daftar dan Deskripsi Fungsional Fitur Utama Aplikasi</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Nama Fitur</th>
+            <th style="width: 48%;">Deskripsi Fungsi dan Mekanisme Teknis</th>
+            <th style="width: 27%;">Komponen Terkait</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Penerjemah Kamera Real-Time</strong></td>
+            <td>Menangkap frame kamera 60 FPS, mengekstrak 21 landmark 3D, menghitung sudut fleksi jari, merangkai kata terjemahan, dan membunyikan suara Bahasa Indonesia (TTS).</td>
+            <td>TranslatePage, CameraViewWidget, MediaPipe Vision</td>
+          </tr>
+          <tr>
+            <td><strong>Penyaring Anti Gestur Palsu</strong></td>
+            <td>Menerapkan <em>noise gate</em> deterministik untuk menolak gerakan tangan bebas, mengisolasi isyarat jempol (<em>thumbs-up</em>), dan kepalan tinju (<em>fist</em>) agar tidak salah terdeteksi.</td>
+            <td>BisindoLandmarkClassifier (Mathematical Gates)</td>
+          </tr>
+          <tr>
+            <td><strong>Katalog Belajar Interaktif</strong></td>
+            <td>Menampilkan kartu materi abjad A-Z dan angka 1-5, disertai deskripsi artikulasi sendi tangan, tips gestur, dan gambar referensi pembentukan isyarat sesuai PUSBISINDO.</td>
+            <td>LearnPage, LearnBloc, Local Learn Data Source</td>
+          </tr>
+          <tr>
+            <td><strong>Riwayat Offline-First</strong></td>
+            <td>Menyimpan hasil terjemahan langsung ke basis data biner lokal Hive Box secara instan tanpa membutuhkan koneksi internet, lalu menyinkronkan data ke cloud saat daring.</td>
+            <td>HistoryLocalDataSource, HiveBox, HistoryRepository</td>
+          </tr>
+          <tr>
+            <td><strong>Manajemen Riwayat &amp; Clipboard</strong></td>
+            <td>Menyediakan fasilitas menyalin teks kalimat terjemahan ke papan klip sistem, menghapus catatan riwayat per item, atau mengosongkan seluruh riwayat dalam satu sentuhan.</td>
+            <td>HistoryPage, HistoryItemTile, HistoryBloc</td>
+          </tr>
+          <tr>
+            <td><strong>Indikator Kesehatan Sistem</strong></td>
+            <td>Memantau status koneksi peladen backend Golang dan basis data Supabase secara real-time pada bilah navigasi antarmuka mobile.</td>
+            <td>BackendStatusBadge, HealthController</td>
+          </tr>
+          <tr>
+            <td><strong>Portal Web Landing Page (React JS)</strong></td>
+            <td>Portal web responsif khusus untuk penyampaian informasi, demonstrasi antarmuka, dokumentasi teknis API, dan tautan pengunduhan aplikasi mobile.</td>
+            <td>Frontend Web (React 19, Tailwind CSS v4, Vite)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3.3. Gambaran Alur Penggunaan Aplikasi (User Journey)</h3>
+    <p>
+      Alur penggunaan aplikasi dirancang intuitif bagi pengguna. Pengguna membuka tab navigasi utama, mengarahkan gestur ke kamera, dan menerima hasil pengenalan karakter secara otomatis sesuai alur diagram terstruktur berikut:
+    </p>
+
+    <!-- Diagram Alur Rapi & Bersih (Gambar 1) -->
+    <div class="diagram-container">
+      <div class="diagram-wrap">
+        <div style="display: flex; align-items: stretch; justify-content: space-between; gap: 4px;">
+          <div style="flex: 1; border: 1px solid #000; padding: 4px; text-align: center; background: #fff;">
+            <div style="font-weight: bold; font-size: 7.8pt;">1. Input Kamera</div>
+            <div style="font-size: 6.8pt; color: #333;">Frame WebGL 60 FPS</div>
+          </div>
+          <div style="display: flex; align-items: center; font-weight: bold; font-size: 9pt;">&rarr;</div>
+          <div style="flex: 1.2; border: 1px solid #000; padding: 4px; text-align: center; background: #fff;">
+            <div style="font-weight: bold; font-size: 7.8pt;">2. MediaPipe Vision</div>
+            <div style="font-size: 6.8pt; color: #333;">21 Titik Landmark 3D</div>
+          </div>
+          <div style="display: flex; align-items: center; font-weight: bold; font-size: 9pt;">&rarr;</div>
+          <div style="flex: 1.3; border: 1px solid #000; padding: 4px; text-align: center; background: #fff;">
+            <div style="font-weight: bold; font-size: 7.8pt;">3. Geometric Classifier</div>
+            <div style="font-size: 6.8pt; color: #333;">Sudut Fleksi &amp; Gerbang Batas</div>
+          </div>
+          <div style="display: flex; align-items: center; font-weight: bold; font-size: 9pt;">&rarr;</div>
+          <div style="flex: 1.2; border: 1px solid #000; padding: 4px; text-align: center; background: #fff;">
+            <div style="font-weight: bold; font-size: 7.8pt;">4. Konfirmasi Gestur</div>
+            <div style="font-size: 6.8pt; color: #333;">Ambang Stabil &ge; 0.8s</div>
+          </div>
+        </div>
+
+        <div style="text-align: center; font-size: 7.5pt; margin: 3px 0; font-weight: bold;">
+          &darr; [Posisi Gestur Valid &amp; Waktu Konfirmasi Terpenuhi] &darr;
+        </div>
+
+        <div style="border: 1px solid #000; padding: 4px 6px; text-align: center; background: #f1f5f9;">
+          <div style="font-weight: bold; font-size: 7.8pt;">5. Luaran Terjemahan &amp; Sinkronisasi Sistem</div>
+          <div style="font-size: 7pt; color: #1e293b;">
+            Rangkai Kata ke Kalimat &nbsp;|&nbsp; Sintesis Suara (TTS) Bahasa Indonesia &nbsp;|&nbsp; Simpan Instan ke Hive NoSQL Lokal &amp; Cloud Supabase
+          </div>
+        </div>
+      </div>
+      <div class="diagram-caption">Gambar 1. Diagram Alur Logika Klasifikasi Kinematik dan Konfirmasi Gestur</div>
+    </div>
+
+    <p>
+      Setelah karakter terkonfirmasi melalui ambang waktu stabil (<em>dwell-time</em> 0,8 detik), karakter otomatis digabungkan ke dalam susunan kalimat, memicu sintesis suara ucapan (Text-to-Speech), dan secara instan dicatat ke riwayat lokal Hive tanpa memblokir antarmuka pengguna.
+    </p>
+
+    <div class="running-footer">
+      <span>Proposal Proyek Akhir Pemrograman Mobile | Program Studi Rekayasa Perangkat Lunak</span>
+      <span>Halaman 2</span>
+    </div>
+  </div>
+
+  <!-- ==================== HALAMAN 3 ==================== -->
+  <div class="page">
+    <div class="running-header">
+      <span>Proposal Tugas Besar Pemrograman Mobile</span>
+      <span>4. Rancangan Teknologi</span>
+    </div>
+
+    <h2>4. Rancangan Teknologi</h2>
+    <p>
+      Arsitektur BISINDO AI dibangun dengan memadukan teknologi perangkat lunak mutakhir yang menjamin efisiensi eksekusi, kemudahan pengujian, dan keandalan operasional lintas platform:
+    </p>
+
+    <div class="table-container">
+      <div class="table-caption">Tabel 2. Matriks Pemilihan Teknologi dan Justifikasi Rekayasa</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">Domain</th>
+            <th style="width: 26%;">Teknologi Terpilih</th>
+            <th style="width: 52%;">Justifikasi dan Peran Spesifik dalam Sistem</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Sistem Mobile Utama</strong></td>
+            <td><strong>Flutter 3.x &amp; Dart 3.x</strong></td>
+            <td>Fondasi utama sistem penerjemah isyarat pada Android. Kompilasi AOT native menjamin rendering 60 FPS mulus saat memvisualisasikan kerangka 21 sendi tangan.</td>
+          </tr>
+          <tr>
+            <td><strong>Arsitektur Mobile</strong></td>
+            <td><strong>Clean Architecture</strong></td>
+            <td>Memisahkan kode menjadi lapisan <em>Domain</em>, <em>Data</em>, dan <em>Presentation</em>. Lapisan Domain murni bebas dependensi luar, menjamin independensi aturan bisnis dan kemudahan testing.</td>
+          </tr>
+          <tr>
+            <td><strong>State Management</strong></td>
+            <td><strong>BLoC &amp; Cubit (`flutter_bloc`)</strong></td>
+            <td>Pola reaktif berbasis Stream yang memisahkan event masukan pengguna dari perubahan status, menjaga antarmuka tetap stabil saat kamera streaming koordinat tangan.</td>
+          </tr>
+          <tr>
+            <td><strong>Visi Komputer / AI</strong></td>
+            <td><strong>Google MediaPipe Tasks Vision</strong></td>
+            <td>Model on-device untuk ekstraksi 21 koordinat spasial 3D sendi tangan secara lokal pada perangkat mobile tanpa ketergantungan koneksi awan.</td>
+          </tr>
+          <tr>
+            <td><strong>Klasifikasi Gestur</strong></td>
+            <td><strong>Geometric Landmark Classifier</strong></td>
+            <td>Algoritma deterministik berbasis kalkulasi sudut fleksi trigonometri dan proyeksi vektor untuk membedakan abjad secara presisi dengan filter <em>anti-false positive</em>.</td>
+          </tr>
+          <tr>
+            <td><strong>Web Landing Page</strong></td>
+            <td><strong>React 19 &amp; Tailwind CSS v4</strong></td>
+            <td>Portal web informasi pendukung (dibangun dengan Vite) yang berfungsi sebagai landing page pengenalan produk, dokumentasi teknis, dan gerbang unduh aplikasi.</td>
+          </tr>
+          <tr>
+            <td><strong>Penyimpanan Lokal</strong></td>
+            <td><strong>Hive NoSQL Storage</strong></td>
+            <td>Penyimpanan biner lokal berkecepatan tinggi pada ponsel untuk mencatat riwayat secara <em>offline-first</em> tanpa memblokir thread UI.</td>
+          </tr>
+          <tr>
+            <td><strong>Peladen Backend</strong></td>
+            <td><strong>Golang 1.22+ (REST API)</strong></td>
+            <td>Server REST API berkecepatan tinggi dengan konsumsi memori minimal (&lt; 20 MB RAM) untuk mengelola sinkronisasi data riwayat ke awan.</td>
+          </tr>
+          <tr>
+            <td><strong>Basis Data Awan</strong></td>
+            <td><strong>Supabase (PostgreSQL)</strong></td>
+            <td>Penyimpanan terkelola PostgreSQL yang dilengkapi kebijakan keamanan <em>Row Level Security (RLS)</em> dan pengindeksan waktu otomatis.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.1. Penerapan Clean Architecture pada Klien Mobile (Flutter)</h3>
+    <p>
+      Klien mobile menerapkan Clean Architecture rancangan Robert C. Martin yang membagi modul ke dalam tiga lingkaran independen dengan arah dependensi ke dalam:
+    </p>
+    <ul>
+      <li><strong>Domain Layer (Pure Dart):</strong> Pusat aturan bisnis yang tidak memiliki dependensi terhadap framework Flutter maupun pustaka luar. Berisi entitas data (<em>HandLandmark, GestureResult, HistoryItem</em>), kontrak abstrak antarmuka (<em>HistoryRepository, LearnRepository</em>), dan kasus penggunaan (<em>GetHistoryUseCase, SaveHistoryUseCase</em>).</li>
+      <li><strong>Data Layer:</strong> Bertanggung jawab atas pengelolaan data konkret. Mengimplementasikan kontrak repositori Domain melalui <em>HiveLocalDataSource</em> untuk akses offline dan <em>HttpRemoteDataSource</em> untuk komunikasi dengan backend Golang. Pada layer ini juga terdapat <em>AIService</em> yang menghubungkan JS-Interop MediaPipe.</li>
+      <li><strong>Presentation Layer:</strong> Berisi antarmuka pengguna (UI) dan logika presentasi. State aplikasi dikelola secara reaktif oleh <em>HistoryBloc</em>, <em>LearnBloc</em>, dan <em>NavigationCubit</em>, memastikan tampilan terpisah sempurna dari logika bisnis.</li>
+    </ul>
+
+    <h3>4.2. Penerapan Pola MVC dan Prinsip SOLID pada Backend (Golang)</h3>
+    <p>
+      Backend REST API dibangun menggunakan bahasa Go dengan struktur MVC yang diperkuat prinsip SOLID: <em>Controller</em> murni bertugas memvalidasi request HTTP dan mengembalikan respons JSON; <em>Service</em> mengorkestrasi logika bisnis dan validasi data; sedangkan <em>Repository</em> menjadi abstraksi akses ke basis data Supabase (menerapkan <em>Dependency Inversion Principle</em>). Pendekatan ini memungkinkan penggantian sumber data tanpa memodifikasi lapisan controller.
+    </p>
+
+    <div class="running-footer">
+      <span>Proposal Proyek Akhir Pemrograman Mobile | Program Studi Rekayasa Perangkat Lunak</span>
+      <span>Halaman 3</span>
+    </div>
+  </div>
+
+  <!-- ==================== HALAMAN 4 ==================== -->
+  <div class="page">
+    <div class="running-header">
+      <span>Proposal Tugas Besar Pemrograman Mobile</span>
+      <span>5. Rancangan Arsitektur dan Alur Sistem</span>
+    </div>
+
+    <h2>5. Rancangan Arsitektur dan Alur Sistem</h2>
+
+    <h3>5.1. Gambaran Arsitektur Sistem Terintegrasi</h3>
+    <p>
+      Struktur arsitektur perangkat lunak BISINDO AI mengadopsi integrasi tiga tingkat (<em>Three-Tier Integrated Architecture</em>) yang menghubungkan Klien Flutter, Peladen Backend Go, dan Basis Data Awan Supabase secara terstruktur dan terpadu:
+    </p>
+
+    <!-- Diagram Arsitektur Blok Rapi (Gambar 2) -->
+    <div class="diagram-container">
+      <div class="diagram-wrap">
+        <!-- Tier 1 -->
+        <div style="border: 1.2px solid #000; margin-bottom: 2px;">
+          <div style="background: #f1f5f9; border-bottom: 0.8px solid #000; padding: 2.5px 6px; font-weight: bold; font-size: 7.8pt; text-align: center; text-transform: uppercase;">
+            Tier 1: Lapisan Klien Mobile (Sistem Utama Flutter) &amp; Web Landing Page (React JS)
+          </div>
+          <div style="display: flex; gap: 4px; padding: 3px;">
+            <div style="flex: 1; border: 0.6px solid #000; padding: 3px 4px; text-align: center; background: #fff;">
+              <div style="font-weight: bold; font-size: 7.2pt;">Aplikasi Mobile (Flutter Clean Architecture)</div>
+              <div style="font-size: 6.5pt; color: #333;">Presentation (BLoC), Domain (UseCases), Data (Hive)</div>
+              <div style="font-size: 6.2pt; color: #555;">Sistem Utama: Kamera, MediaPipe 21 Titik, Suara TTS</div>
+            </div>
+            <div style="flex: 0.75; border: 0.6px solid #000; padding: 3px 4px; text-align: center; background: #fff;">
+              <div style="font-weight: bold; font-size: 7.2pt;">Portal Web (React JS + Tailwind)</div>
+              <div style="font-size: 6.5pt; color: #333;">Landing Page &amp; Dokumentasi Teknis</div>
+              <div style="font-size: 6.2pt; color: #555;">Media Pengenalan &amp; Gerbang Unduh Mobile</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector 1 -->
+        <div style="text-align: center; font-size: 7.2pt; font-weight: bold; margin: 1px 0;">
+          &darr; HTTP REST API (Protokol JSON / Port 8080) &darr;
+        </div>
+
+        <!-- Tier 2 -->
+        <div style="border: 1.2px solid #000; margin-bottom: 2px;">
+          <div style="background: #f1f5f9; border-bottom: 0.8px solid #000; padding: 2.5px 6px; font-weight: bold; font-size: 7.8pt; text-align: center; text-transform: uppercase;">
+            Tier 2: Lapisan Peladen Backend API (Golang MVC + SOLID)
+          </div>
+          <div style="display: flex; gap: 4px; padding: 3px;">
+            <div style="flex: 1; border: 0.6px solid #000; padding: 2.5px; text-align: center; background: #fff;">
+              <div style="font-weight: bold; font-size: 7pt;">Controllers</div>
+              <div style="font-size: 6.2pt; color: #333;">Health &amp; History</div>
+            </div>
+            <div style="flex: 1; border: 0.6px solid #000; padding: 2.5px; text-align: center; background: #fff;">
+              <div style="font-weight: bold; font-size: 7pt;">Services</div>
+              <div style="font-size: 6.2pt; color: #333;">Logika Bisnis</div>
+            </div>
+            <div style="flex: 1; border: 0.6px solid #000; padding: 2.5px; text-align: center; background: #fff;">
+              <div style="font-weight: bold; font-size: 7pt;">Repositories</div>
+              <div style="font-size: 6.2pt; color: #333;">Abstraksi DB</div>
+            </div>
+            <div style="flex: 1; border: 0.6px solid #000; padding: 2.5px; text-align: center; background: #fff;">
+              <div style="font-weight: bold; font-size: 7pt;">Middleware</div>
+              <div style="font-size: 6.2pt; color: #333;">CORS &amp; Logger</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector 2 -->
+        <div style="text-align: center; font-size: 7.2pt; font-weight: bold; margin: 1px 0;">
+          &darr; HTTPS / TLS (Koneksi Aman Port 443 / RLS) &darr;
+        </div>
+
+        <!-- Tier 3 -->
+        <div style="border: 1.2px solid #000;">
+          <div style="background: #f1f5f9; border-bottom: 0.8px solid #000; padding: 2.5px 6px; font-weight: bold; font-size: 7.8pt; text-align: center; text-transform: uppercase;">
+            Tier 3: Lapisan Basis Data Awan (Supabase PostgreSQL)
+          </div>
+          <div style="padding: 2.5px 6px; font-size: 6.8pt; text-align: center; background: #fff;">
+            Tabel <code>public.history</code> &nbsp;|&nbsp; Tabel <code>public.learn_materials</code> &nbsp;|&nbsp; Kebijakan <em>Row Level Security</em> (RLS) &nbsp;|&nbsp; B-Tree Timestamp Indexes
+          </div>
+        </div>
+      </div>
+      <div class="diagram-caption">Gambar 2. Diagram Arsitektur Tiga Tingkat Sistem BISINDO AI</div>
+    </div>
+
+    <h3>5.2. Alur Komunikasi Antara Klien, Layanan AI, dan Backend</h3>
+    <p>
+      Komunikasi sistem menerapkan pola desentralisasi beban: <strong>Layanan AI berjalan sepenuhnya di sisi klien (in-browser / on-device)</strong> melalui jembatan JS-Interop / WebAssembly. Setelah MediaPipe mengekstrak 21 koordinat sendi tangan, <em>Geometric Classifier</em> internal langsung memutuskan karakter tanpa perlu menunggu respons jaringan. Saat gestur terkonfirmasi, data teks segera ditulis ke basis data lokal Hive. Pada saat bersamaan, klien mengeksekusi panggilan asynchronous HTTP POST ke Backend Golang untuk menyimpan rekaman ke Supabase, sehingga antarmuka tetap berjalan pada 60 FPS tanpa jeda I/O.
+    </p>
+
+    <h3>5.3. Rancangan Basis Data Relasional (Supabase PostgreSQL)</h3>
+    <p>
+      Skema basis data dirancang efisien dengan pengindeksan terbalik pada kolom waktu untuk memastikan query riwayat berlangsung instan:
+    </p>
+
+    <div class="diagram-container">
+      <div class="sql-code-box">-- 1. Tabel Riwayat Terjemahan (History)
+CREATE TABLE IF NOT EXISTS public.history (
+    id TEXT PRIMARY KEY,
+    text TEXT NOT NULL,
+    confidence DOUBLE PRECISION NOT NULL DEFAULT 0.95,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_history_timestamp ON public.history (timestamp DESC);
+
+-- 2. Tabel Materi Pembelajaran (Learn Materials)
+CREATE TABLE IF NOT EXISTS public.learn_materials (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_learn_materials_category ON public.learn_materials (category);
+
+-- 3. Kebijakan Keamanan Akses Data (Row Level Security / RLS)
+ALTER TABLE public.history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.learn_materials ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON public.history FOR SELECT USING (true);
+CREATE POLICY "Allow public insert access" ON public.history FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public delete access" ON public.history FOR DELETE USING (true);
+CREATE POLICY "Allow public read learn" ON public.learn_materials FOR SELECT USING (true);</div>
+      <div class="diagram-caption">Gambar 3. Definisi Skema DDL dan Kebijakan Row Level Security (RLS) Supabase</div>
+    </div>
+
+    <div class="running-footer">
+      <span>Proposal Proyek Akhir Pemrograman Mobile | Program Studi Rekayasa Perangkat Lunak</span>
+      <span>Halaman 4</span>
+    </div>
+  </div>
+
+  <!-- ==================== HALAMAN 5 ==================== -->
+  <div class="page">
+    <div class="running-header">
+      <span>Proposal Tugas Besar Pemrograman Mobile</span>
+      <span>6. Rencana Implementasi</span>
+    </div>
+
+    <h2>6. Rencana Implementasi</h2>
+
+    <h3>6.1. Tahapan Pengembangan Sistem (Sprint Roadmap 5 Pekan)</h3>
+    <div class="table-container">
+      <div class="table-caption">Tabel 3. Roadmap Tahapan Pengembangan Sistem</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 14%;">Fase / Waktu</th>
+            <th style="width: 36%;">Aktivitas Rekayasa Perangkat Lunak</th>
+            <th style="width: 50%;">Luaran Nyata (Deliverables)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Pekan 1</strong></td>
+            <td>Riset gestur BISINDO, analisis dataset 21 titik koordinat, konfigurasi Supabase Cloud dan skema DDL.</td>
+            <td>Skema database aktif, dataset acuan koordinat A-Z, dan spesifikasi desain antarmuka DESIGN.md.</td>
+          </tr>
+          <tr>
+            <td><strong>Pekan 2</strong></td>
+            <td>Pembangunan REST API Golang (MVC + SOLID), middleware CORS, pengujian unit test backend.</td>
+            <td>Endpoint API /health, /history (GET/POST/DELETE) teruji lolos 100% unit test.</td>
+          </tr>
+          <tr>
+            <td><strong>Pekan 3</strong></td>
+            <td>Integrasi runtime MediaPipe Tasks Vision WebAssembly, perancangan Geometric Classifier deterministik.</td>
+            <td>Pipeline ekstraksi 21 sendi tangan, deteksi fleksi jari, dan gerbang anti-false positive.</td>
+          </tr>
+          <tr>
+            <td><strong>Pekan 4</strong></td>
+            <td>Konstruksi Flutter Clean Architecture, BLoC state management, integrasi Hive biner &amp; UI modern.</td>
+            <td>Aplikasi mobile/web berfungsi penuh: TranslatePage, LearnPage, HistoryPage, dan Floating Dock.</td>
+          </tr>
+          <tr>
+            <td><strong>Pekan 5</strong></td>
+            <td>Pengujian sistem menyeluruh (QA), optimasi latensi, pembuatan portal web dokumentasi pendukung.</td>
+            <td>Repositori terverifikasi bersih, portal web React pendukung aktif, dan dokumen proposal final.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.2. Pembagian Tugas Anggota Kelompok</h3>
+    <div class="table-container">
+      <div class="table-caption">Tabel 4. Matriks Pembagian Tugas dan Tanggung Jawab Anggota Kelompok</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 32%;">Nama Mahasiswa &amp; NIM</th>
+            <th style="width: 68%;">Rincian Tanggung Jawab &amp; Kontribusi Rekayasa Perangkat Lunak</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Muhammad Faiz Ramadhan</strong><br>NIM: 2305072</td>
+            <td>
+              1. Mengembangkan sistem mobile utama menggunakan Flutter berbasis Clean Architecture.<br>
+              2. Mengintegrasikan model MediaPipe Tasks Vision untuk ekstraksi 21 koordinat 3D sendi tangan.<br>
+              3. Merancang dan mengalibrasi algoritma <em>Geometric Landmark Classifier</em> (A-Z) dan filter anti gestur palsu.<br>
+              4. Mengintegrasikan basis data lokal biner Hive NoSQL untuk fitur <em>offline-first</em> dan BLoC State Management.<br>
+              5. Mengembangkan portal web landing page menggunakan React JS, Tailwind CSS, dan Vite.<br>
+              6. Menyusun pengujian unit test klasifikator kinematik dengan hasil 100% Pass Rate.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Nailyaa Dliyaa’an Syah</strong><br>NIM: 2305075</td>
+            <td>
+              1. Membangun backend server REST API menggunakan Golang dengan pola arsitektur MVC dan prinsip SOLID.<br>
+              2. Mengonfigurasi basis data Supabase PostgreSQL, migrasi skema tabel, dan kebijakan keamanan <em>Row Level Security</em>.<br>
+              3. Menyusun kurikulum materi pembelajaran bahasa isyarat BISINDO untuk modul Learn pada aplikasi mobile.<br>
+              4. Merancang antarmuka pengguna ramah disabilitas sesuai panduan desain sistem (DESIGN.md).<br>
+              5. Merancang konten dokumentasi teknis pada web landing page dan melakukan pengujian integrasi (QA Testing).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.3. Target Hasil Akhir yang Ingin Dicapai</h3>
+    <p>
+      Keberhasilan proyek diukur melalui parameter kuantitatif dan kualitatif berikut:
+    </p>
+    <ul>
+      <li><strong>Akurasi Pengenalan Handal:</strong> Akurasi klasifikasi abjad A-Z BISINDO mencapai &gt; 90% pada pencahayaan wajar dengan latensi inferensi di bawah 15 milidetik per frame.</li>
+      <li><strong>Nol Deteksi Palsu:</strong> Gerakan tangan bebas dan posisi santai tidak memicu karakter sampah berkat gerbang batas deterministik (<em>hard boundary gates</em>).</li>
+      <li><strong>Ketahanan Offline Penuh:</strong> Pengguna dapat menerjemahkan dan menyimpan riwayat komunikasi meski jaringan internet terputus total tanpa mengalami kegagalan aplikasi (<em>crash</em>).</li>
+      <li><strong>Kepatuhan Standar Rekayasa:</strong> Penerapan Clean Code, SOLID principles, serta pengujian otomatis berkelanjutan dengan kelulusan 100%.</li>
+    </ul>
+
+    <div class="running-footer">
+      <span>Proposal Proyek Akhir Pemrograman Mobile | Program Studi Rekayasa Perangkat Lunak</span>
+      <span>Halaman 5</span>
+    </div>
+  </div>
+
+</body>
+</html>
