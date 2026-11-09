@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/di/injection.dart';
+import 'core/theme/app_theme.dart';
 import 'features/history/presentation/bloc/history_bloc.dart';
 import 'features/learn/presentation/bloc/learn_bloc.dart';
 import 'features/navigation/pages/main_nav_page.dart';
@@ -41,17 +42,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: AppConstants.appName,
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-          ),
-        ),
+        theme: AppTheme.darkTheme,
         home: const MainNavPage(),
       ),
     );

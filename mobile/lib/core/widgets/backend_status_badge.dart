@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../di/injection.dart';
 import '../network/backend_health_service.dart';
+import '../theme/app_theme.dart';
 
 class BackendStatusBadge extends StatefulWidget {
   const BackendStatusBadge({super.key});
@@ -37,80 +38,162 @@ class _BackendStatusBadgeState extends State<BackendStatusBadge> {
   void _showDetailDialog() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        side: BorderSide(color: AppColors.border, width: 1),
       ),
       builder: (ctx) {
         final info = _healthInfo;
         final isConnected = info?.isConnected ?? false;
         final isSupabaseOk = info?.isSupabaseConnected ?? false;
 
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    isConnected ? Icons.cloud_done : Icons.cloud_off,
-                    color: isConnected ? Colors.green : Colors.red,
-                    size: 28,
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(22.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: (isConnected ? AppColors.accentGreen : const Color(0xFFEF4444))
+                            .withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isConnected ? Icons.cloud_done : Icons.cloud_off,
+                        color: isConnected ? AppColors.accentGreen : const Color(0xFFEF4444),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Status Koneksi Server & AI',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 28, color: AppColors.border),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.computer, color: AppColors.accentCyan, size: 20),
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Status Koneksi Backend & Supabase',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  title: const Text(
+                    'Golang Backend API',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ],
-              ),
-              const Divider(height: 24),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.computer, color: Colors.blue),
-                title: const Text('Golang Backend API'),
-                subtitle: Text(
-                  isConnected ? 'Online (REST API Aktif)' : 'Offline / Tidak terhubung',
-                ),
-                trailing: Text(
-                  isConnected ? 'AKTIF' : 'OFFLINE',
-                  style: TextStyle(
-                    color: isConnected ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
+                  subtitle: Text(
+                    isConnected ? 'Online (REST API Aktif)' : 'Offline (Mode lokal aktif)',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
-                ),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.storage, color: Colors.purple),
-                title: const Text('Supabase Database & Auth'),
-                subtitle: Text(
-                  isSupabaseOk
-                      ? 'Tersambung (https://kdhsejrotfajtqygkcse.supabase.co)'
-                      : (info?.errorMessage ?? 'Belum tersambung'),
-                ),
-                trailing: Text(
-                  isSupabaseOk ? 'TERHUBUNG' : 'OFFLINE',
-                  style: TextStyle(
-                    color: isSupabaseOk ? Colors.green : Colors.orange,
-                    fontWeight: FontWeight.bold,
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: (isConnected ? AppColors.accentGreen : const Color(0xFFEF4444))
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isConnected ? AppColors.accentGreen : const Color(0xFFEF4444),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      isConnected ? 'AKTIF' : 'OFFLINE',
+                      style: TextStyle(
+                        color: isConnected ? AppColors.accentGreen : const Color(0xFFEF4444),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _checkStatus();
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Cek Ulang Koneksi'),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.storage, color: AppColors.primaryLight, size: 20),
+                  ),
+                  title: const Text(
+                    'Supabase Database & Auth',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    isSupabaseOk
+                        ? 'Tersambung (Cloud Database)'
+                        : (info?.errorMessage ?? 'Belum tersambung (Fallback lokal)'),
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: (isSupabaseOk ? AppColors.accentGreen : AppColors.accentAmber)
+                          .withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSupabaseOk ? AppColors.accentGreen : AppColors.accentAmber,
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      isSupabaseOk ? 'TERHUBUNG' : 'OFFLINE',
+                      style: TextStyle(
+                        color: isSupabaseOk ? AppColors.accentGreen : AppColors.accentAmber,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _checkStatus();
+                    },
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text(
+                      'Cek Ulang Koneksi',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -121,11 +204,14 @@ class _BackendStatusBadgeState extends State<BackendStatusBadge> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12.0),
+        padding: EdgeInsets.symmetric(horizontal: 8.0),
         child: SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppColors.primaryLight,
+          ),
         ),
       );
     }
@@ -136,15 +222,13 @@ class _BackendStatusBadgeState extends State<BackendStatusBadge> {
       onTap: _showDetailDialog,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: isOnline
-              ? Colors.green.withValues(alpha: 0.15)
-              : Colors.grey.withValues(alpha: 0.15),
+          color: (isOnline ? AppColors.accentGreen : AppColors.surfaceHigher)
+              .withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isOnline ? Colors.green : Colors.grey,
+            color: isOnline ? AppColors.accentGreen.withValues(alpha: 0.6) : AppColors.borderLight,
             width: 1,
           ),
         ),
@@ -152,19 +236,27 @@ class _BackendStatusBadgeState extends State<BackendStatusBadge> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isOnline ? Colors.green : Colors.grey,
+                color: isOnline ? AppColors.accentGreen : AppColors.textMuted,
+                boxShadow: isOnline
+                    ? [
+                        BoxShadow(
+                          color: AppColors.accentGreen.withValues(alpha: 0.6),
+                          blurRadius: 4,
+                        ),
+                      ]
+                    : null,
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Text(
-              isOnline ? 'Backend Online' : 'Cek Backend',
+              isOnline ? 'Online' : 'Lokal',
               style: TextStyle(
-                fontSize: 12,
-                color: isOnline ? Colors.green.shade800 : Colors.grey.shade700,
+                fontSize: 11.5,
+                color: isOnline ? AppColors.accentGreen : AppColors.textSecondary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -174,4 +266,3 @@ class _BackendStatusBadgeState extends State<BackendStatusBadge> {
     );
   }
 }
-

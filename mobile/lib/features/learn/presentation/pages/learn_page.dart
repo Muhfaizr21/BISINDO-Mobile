@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/backend_status_badge.dart';
 import '../bloc/learn_bloc.dart';
 import '../bloc/learn_event.dart';
@@ -24,9 +25,11 @@ class _LearnPageState extends State<LearnPage> {
   void _showDetailBottomSheet(BuildContext context, LearnItem item) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: AppColors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        side: BorderSide(color: AppColors.border, width: 1),
       ),
       builder: (ctx) {
         return SafeArea(
@@ -37,68 +40,73 @@ class _LearnPageState extends State<LearnPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 40,
+                  width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.borderLight,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 Text(
                   item.title,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(6),
+                    color: AppColors.surfaceHigher,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.borderLight, width: 0.8),
                   ),
                   child: Text(
                     item.category,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.blue.shade800,
+                      color: AppColors.accentCyan,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 if (item.imageAsset != null)
                   Container(
                     width: 200,
                     height: 200,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
+                      color: AppColors.surfaceElevated,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderLight),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Image.asset(
                         item.imageAsset!,
                         fit: BoxFit.cover,
                         errorBuilder: (c, e, s) => const Center(
-                          child: Icon(Icons.broken_image,
-                              size: 48, color: Colors.grey),
+                          child: Icon(
+                            Icons.sign_language,
+                            size: 48,
+                            color: AppColors.primaryLight,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                const SizedBox(height: 16),
-                Align(
+                const SizedBox(height: 18),
+                const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Instruksi Gerakan:',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.grey.shade800,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -107,25 +115,31 @@ class _LearnPageState extends State<LearnPage> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     item.description,
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: const TextStyle(
+                      fontSize: 13.5,
                       height: 1.4,
-                      color: Colors.grey.shade700,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text('Tutup'),
+                    child: const Text(
+                      'Tutup',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],
@@ -141,32 +155,49 @@ class _LearnPageState extends State<LearnPage> {
       context: context,
       builder: (ctx) {
         return Dialog(
-          insetPadding: const EdgeInsets.all(12),
+          backgroundColor: AppColors.surface,
+          insetPadding: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.border),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               AppBar(
+                backgroundColor: AppColors.surface,
+                elevation: 0,
                 title: const Text(
                   'Panduan Alfabet BISINDO',
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 automaticallyImplyLeading: false,
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close, color: AppColors.textSecondary),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
-              InteractiveViewer(
-                minScale: 0.8,
-                maxScale: 3.5,
-                child: Image.asset(
-                  'assets/images/bisindo_chart.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (c, e, s) => const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('Gagal memuat gambar chart.'),
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                child: InteractiveViewer(
+                  minScale: 0.8,
+                  maxScale: 3.5,
+                  child: Image.asset(
+                    'assets/images/bisindo_chart.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (c, e, s) => const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        'Gagal memuat gambar chart.',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -180,6 +211,7 @@ class _LearnPageState extends State<LearnPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Belajar Bahasa Isyarat'),
         actions: const [
@@ -189,41 +221,53 @@ class _LearnPageState extends State<LearnPage> {
       body: BlocBuilder<LearnBloc, LearnState>(
         builder: (context, state) {
           if (state is LearnLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
           } else if (state is LearnLoaded) {
             if (state.items.isEmpty) {
               return const Center(
-                child: Text('Belum ada materi pembelajaran.'),
+                child: Text(
+                  'Belum ada materi pembelajaran.',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
               );
             }
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
               itemCount: state.items.length + 1,
               itemBuilder: (context, index) {
                 // Header banner for full chart
                 if (index == 0) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade700, Colors.blue.shade500],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: AppColors.border),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blue.withValues(alpha: 0.2),
-                          blurRadius: 8,
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.menu_book,
-                            color: Colors.white, size: 36),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.menu_book,
+                            color: AppColors.primaryLight,
+                            size: 26,
+                          ),
+                        ),
                         const SizedBox(width: 14),
                         const Expanded(
                           child: Column(
@@ -232,16 +276,16 @@ class _LearnPageState extends State<LearnPage> {
                               Text(
                                 'Bagan Lengkap BISINDO',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                 ),
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'Lihat panduan visual abjad A sampai Z',
+                                'Panduan visual abjad A sampai Z & angka',
                                 style: TextStyle(
-                                  color: Colors.white70,
+                                  color: AppColors.textSecondary,
                                   fontSize: 12,
                                 ),
                               ),
@@ -251,13 +295,21 @@ class _LearnPageState extends State<LearnPage> {
                         ElevatedButton(
                           onPressed: () => _showChartDialog(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.blue.shade800,
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            minimumSize: const Size(60, 44),
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          child: const Text('Buka'),
+                          child: const Text(
+                            'Buka',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
@@ -276,7 +328,10 @@ class _LearnPageState extends State<LearnPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Terjadi kesalahan: ${state.message}'),
+                  Text(
+                    'Terjadi kesalahan: ${state.message}',
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () {
@@ -288,7 +343,12 @@ class _LearnPageState extends State<LearnPage> {
               ),
             );
           }
-          return const Center(child: Text('Siap memulai belajar.'));
+          return const Center(
+            child: Text(
+              'Siap memulai belajar.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          );
         },
       ),
     );

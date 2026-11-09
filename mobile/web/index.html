@@ -19,13 +19,29 @@
   <title>Sign Language Translator - BISINDO</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- MediaPipe Hand Landmarker Web Integration -->
-  <script type="module">
-    import {
-      FilesetResolver,
-      HandLandmarker
-    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+  <!-- Local & Offline Resilience for Flutter CanvasKit -->
+  <script>
+    window._flutter = window._flutter || {};
+    // Ensure CanvasKit loads locally from localhost instead of failing on gstatic when offline
+    Object.defineProperty(window._flutter, 'buildConfig', {
+      configurable: true,
+      enumerable: true,
+      get: function() {
+        return this._bc;
+      },
+      set: function(val) {
+        if (val) {
+          val.useLocalCanvasKit = true;
+        }
+        this._bc = val;
+      }
+    });
+  </script>
 
+  <!-- MediaPipe Hand Landmarker Web Integration (Offline-Ready & Dynamic Fallback) -->
+  <script>
+    let FilesetResolver = null;
+    let HandLandmarker = null;
     let handLandmarker = null;
     let isInitializing = false;
     let initError = null;
@@ -36,41 +52,60 @@
       if (handLandmarker || isInitializing) return;
       isInitializing = true;
       try {
-        const vision = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-        );
+        let visionModule;
+        // 1. Try local bundled MediaPipe tasks-vision
         try {
-          handLandmarker = await HandLandmarker.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath:
-                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-              delegate: "GPU"
-            },
-            runningMode: "VIDEO",
-            numHands: 2,
-            minHandDetectionConfidence: 0.40,
-            minHandPresenceConfidence: 0.40,
-            minTrackingConfidence: 0.40
-          });
+          visionModule = await import("./mediapipe/tasks-vision.js");
+        } catch (_) {
+          // 2. Fallback to jsdelivr CDN if local file fails
+          try {
+            visionModule = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm");
+          } catch (cdnErr) {
+            console.warn("[BISINDO MediaPipe] JSDelivr CDN unreachable (DNS/Offline). Simulation mode remains active.", cdnErr);
+            initError = "Offline: MediaPipe offline. Mode simulasi gestur tetap aktif.";
+            isInitializing = false;
+            return;
+          }
+        }
+
+        FilesetResolver = visionModule.FilesetResolver;
+        HandLandmarker = visionModule.HandLandmarker;
+
+        let wasmPath = "./mediapipe";
+        let modelPath = "./mediapipe/hand_landmarker.task";
+
+        let vision;
+        try {
+          vision = await FilesetResolver.forVisionTasks(wasmPath);
+        } catch (_) {
+          wasmPath = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+          modelPath = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+          vision = await FilesetResolver.forVisionTasks(wasmPath);
+        }
+
+        const options = {
+          baseOptions: {
+            modelAssetPath: modelPath,
+            delegate: "GPU"
+          },
+          runningMode: "VIDEO",
+          numHands: 2,
+          minHandDetectionConfidence: 0.40,
+          minHandPresenceConfidence: 0.40,
+          minTrackingConfidence: 0.40
+        };
+
+        try {
+          handLandmarker = await HandLandmarker.createFromOptions(vision, options);
         } catch (_) {
           // Fallback to CPU delegate if WebGL GPU delegate is restricted
-          handLandmarker = await HandLandmarker.createFromOptions(vision, {
-            baseOptions: {
-              modelAssetPath:
-                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-              delegate: "CPU"
-            },
-            runningMode: "VIDEO",
-            numHands: 2,
-            minHandDetectionConfidence: 0.40,
-            minHandPresenceConfidence: 0.40,
-            minTrackingConfidence: 0.40
-          });
+          options.baseOptions.delegate = "CPU";
+          handLandmarker = await HandLandmarker.createFromOptions(vision, options);
         }
-        console.log("[BISINDO MediaPipe] HandLandmarker initialized (2 hands, VIDEO mode).");
+        console.log("[BISINDO MediaPipe] HandLandmarker initialized successfully (local & offline ready).");
       } catch (err) {
         initError = String(err);
-        console.error("[BISINDO MediaPipe] Failed to initialize HandLandmarker:", err);
+        console.warn("[BISINDO MediaPipe] HandLandmarker initialization warning:", err);
       } finally {
         isInitializing = false;
       }
@@ -211,6 +246,28 @@
   </script>
 </head>
 <body>
+  <div id="flutter-loading" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; z-index: 999999;">
+    <div style="width: 44px; height: 44px; border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 0.9s linear infinite;"></div>
+    <div style="margin-top: 16px; font-size: 15px; font-weight: 600; color: #1e293b;">Memuat Penerjemah BISINDO...</div>
+    <div style="margin-top: 6px; font-size: 12px; color: #64748b;">Menyiapkan CanvasKit & AI On-Device</div>
+    <div id="flutter-error" style="display: none; margin-top: 20px; text-align: center;">
+      <p style="color: #dc2626; font-size: 13px; max-width: 300px; margin: 0 auto; line-height: 1.4;">Jaringan lambat atau offline. Klik tombol di bawah untuk memuat ulang.</p>
+      <button onclick="window.location.reload()" style="margin-top: 12px; padding: 8px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.3);">Muat Ulang</button>
+    </div>
+  </div>
+  <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      const el = document.getElementById('flutter-loading');
+      if (el) el.remove();
+    });
+    setTimeout(function() {
+      const err = document.getElementById('flutter-error');
+      if (err) err.style.display = 'block';
+    }, 12000);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

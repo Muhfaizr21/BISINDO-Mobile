@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class SmartWordToolbar extends StatelessWidget {
   final String currentText;
@@ -26,7 +27,6 @@ class SmartWordToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasText = currentText.trim().isNotEmpty;
 
     return Column(
@@ -36,33 +36,54 @@ class SmartWordToolbar extends StatelessWidget {
         // 1. Word Suggestions Chips
         if (suggestions.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
+            padding: const EdgeInsets.only(bottom: 10.0),
             child: SizedBox(
-              height: 38,
+              height: 40,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: suggestions.length,
                 separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final word = suggestions[index];
-                  return ActionChip(
-                    avatar: const Icon(Icons.auto_awesome, size: 16, color: Colors.blueAccent),
-                    label: Text(
-                      word,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.5,
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => onSelectSuggestion(word),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.auto_awesome,
+                              size: 14,
+                              color: AppColors.primaryLight,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              word,
+                              style: const TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.45),
-                    side: BorderSide(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                      width: 1.0,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    onPressed: () => onSelectSuggestion(word),
                   );
                 },
               ),
@@ -71,80 +92,128 @@ class SmartWordToolbar extends StatelessWidget {
 
         // 2. Action Toolbar Row
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(14),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              color: AppColors.border,
+              width: 1.0,
             ),
           ),
           child: Row(
             children: [
-              // TTS Speak Button
-              IconButton.filledTonal(
-                tooltip: 'Suarakan Kalimat (TTS)',
-                onPressed: hasText ? onSpeak : null,
-                icon: Icon(
-                  isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
-                  color: isSpeaking ? Colors.green : theme.colorScheme.primary,
-                  size: 20,
-                ),
-                style: IconButton.styleFrom(
-                  minimumSize: const Size(40, 40),
+              // TTS Speak Button with Violet Gradient
+              GestureDetector(
+                onTap: hasText ? onSpeak : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    gradient: hasText
+                        ? (isSpeaking
+                            ? const LinearGradient(
+                                colors: [Color(0xFF059669), Color(0xFF10B981)],
+                              )
+                            : const LinearGradient(
+                                colors: [AppColors.primaryDark, AppColors.primary],
+                              ))
+                        : null,
+                    color: hasText ? null : AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: hasText
+                        ? [
+                            BoxShadow(
+                              color: (isSpeaking
+                                      ? AppColors.accentGreen
+                                      : AppColors.primary)
+                                  .withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Icon(
+                    isSpeaking ? Icons.volume_up : Icons.volume_up_outlined,
+                    color: hasText ? Colors.white : AppColors.textMuted,
+                    size: 20,
+                  ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
 
               // Copy Button
-              IconButton.outlined(
+              IconButton(
                 tooltip: 'Salin Teks',
                 onPressed: hasText ? onCopy : null,
                 icon: const Icon(Icons.copy_rounded, size: 18),
                 style: IconButton.styleFrom(
-                  minimumSize: const Size(38, 38),
-                  padding: EdgeInsets.zero,
+                  backgroundColor: AppColors.surfaceElevated,
+                  foregroundColor: hasText ? AppColors.textPrimary : AppColors.textMuted,
+                  minimumSize: const Size(40, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
 
               const Spacer(),
 
               // Space Button
-              FilledButton.tonalIcon(
+              ElevatedButton.icon(
                 onPressed: hasText ? onSpace : null,
                 icon: const Icon(Icons.space_bar, size: 18),
-                label: const Text('Spasi', style: TextStyle(fontSize: 12)),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  minimumSize: const Size(0, 38),
+                label: const Text(
+                  'Spasi',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.surfaceElevated,
+                  foregroundColor: hasText ? AppColors.textPrimary : AppColors.textMuted,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  minimumSize: const Size(0, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.borderLight, width: 0.8),
+                  ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
 
               // Backspace Button
-              IconButton.outlined(
+              IconButton(
                 tooltip: 'Hapus Huruf Terakhir',
                 onPressed: hasText ? onBackspace : null,
                 icon: const Icon(Icons.backspace_outlined, size: 18),
                 style: IconButton.styleFrom(
-                  minimumSize: const Size(38, 38),
-                  padding: EdgeInsets.zero,
+                  backgroundColor: AppColors.surfaceElevated,
+                  foregroundColor: hasText ? AppColors.textPrimary : AppColors.textMuted,
+                  minimumSize: const Size(40, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
 
               // Clear All Button
               IconButton(
                 tooltip: 'Bersihkan Semua',
                 onPressed: hasText ? onClear : null,
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: hasText ? Colors.redAccent : theme.disabledColor,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.delete_outline, size: 18),
                 style: IconButton.styleFrom(
-                  minimumSize: const Size(38, 38),
-                  padding: EdgeInsets.zero,
+                  backgroundColor: AppColors.surfaceElevated,
+                  foregroundColor: hasText ? Colors.redAccent : AppColors.textMuted,
+                  minimumSize: const Size(40, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ],
