@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/backend_status_badge.dart';
@@ -6,6 +7,7 @@ import '../../../history/domain/entities/history_item.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/presentation/bloc/history_event.dart';
 import '../../domain/entities/gesture.dart';
+import '../../domain/entities/hand_landmarks.dart';
 import '../bloc/translate_bloc.dart';
 import '../bloc/translate_event.dart';
 import '../bloc/translate_state.dart';
@@ -13,6 +15,80 @@ import '../widgets/camera_view_widget.dart';
 
 class TranslatePage extends StatelessWidget {
   const TranslatePage({super.key});
+
+  void _showAlphabetPicker(BuildContext context) {
+    const letters = [
+      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+      'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Pilih Gestur Huruf BISINDO',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: letters.map((letter) {
+                    return SizedBox(
+                      width: 46,
+                      height: 46,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          context.read<TranslateBloc>().add(
+                                GestureDetectedEvent(
+                                  Gesture(label: letter, confidence: 0.96),
+                                ),
+                              );
+                        },
+                        child: Text(
+                          letter,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +99,7 @@ class TranslatePage extends StatelessWidget {
           const BackendStatusBadge(),
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Reset',
+            tooltip: 'Reset Teks',
             onPressed: () {
               context.read<TranslateBloc>().add(ClearTranslationEvent());
             },
@@ -41,6 +117,8 @@ class TranslatePage extends StatelessWidget {
                 return CameraViewWidget(
                   cameraService: sl.cameraService,
                   isDetecting: isDetecting,
+                  detectedHands:
+                      isDetecting ? [HandSkeleton.sample()] : const [],
                 );
               },
             ),
@@ -52,7 +130,7 @@ class TranslatePage extends StatelessWidget {
 
                 if (state is TranslateDetecting) {
                   resultText = state.translatedText.isEmpty
-                      ? 'Mendeteksi...'
+                      ? 'Mendeteksi gestur...'
                       : state.translatedText;
                   gestures = state.detectedGestures;
                 } else if (state is TranslateStopped) {
@@ -60,6 +138,11 @@ class TranslatePage extends StatelessWidget {
                       ? 'Deteksi dihentikan'
                       : state.finalTranslation;
                 }
+
+                final hasText = resultText.isNotEmpty &&
+                    resultText != 'Belum ada deteksi gesture' &&
+                    resultText != 'Mendeteksi gestur...' &&
+                    resultText != 'Deteksi dihentikan';
 
                 return Card(
                   elevation: 2,
@@ -71,20 +154,41 @@ class TranslatePage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Hasil Terjemahan:',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Hasil Terjemahan:',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            if (hasText)
+                              IconButton(
+                                icon: const Icon(Icons.copy, size: 20),
+                                tooltip: 'Salin Teks',
+                                onPressed: () {
+                                  Clipboard.setData(
+                                      ClipboardData(text: resultText));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Teks disalin ke papan klip'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Text(
                           resultText,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.blueAccent,
-                            fontWeight: FontWeight.w600,
+                          style: TextStyle(
+                            fontSize: 22,
+                            color: hasText ? Colors.blue.shade800 : Colors.grey,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         if (gestures.isNotEmpty) ...[
@@ -93,13 +197,16 @@ class TranslatePage extends StatelessWidget {
                             'Gestur Terdeteksi:',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Wrap(
                             spacing: 8,
+                            runSpacing: 4,
                             children: gestures.map((g) {
                               return Chip(
+                                visualDensity: VisualDensity.compact,
                                 label: Text(
                                   '${g.label} (${(g.confidence * 100).toStringAsFixed(0)}%)',
+                                  style: const TextStyle(fontSize: 12),
                                 ),
                               );
                             }).toList(),
@@ -119,43 +226,55 @@ class TranslatePage extends StatelessWidget {
                 return Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          backgroundColor:
-                              isDetecting ? Colors.red : Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          if (isDetecting) {
-                            context
-                                .read<TranslateBloc>()
-                                .add(StopDetectionEvent());
-                          } else {
-                            context
-                                .read<TranslateBloc>()
-                                .add(StartDetectionEvent());
-                          }
-                        },
-                        icon: Icon(isDetecting ? Icons.stop : Icons.play_arrow),
-                        label: Text(
-                          isDetecting ? 'Hentikan Deteksi' : 'Mulai Deteksi',
-                          style: const TextStyle(fontSize: 16),
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isDetecting ? Colors.red : Colors.blue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (isDetecting) {
+                              context
+                                  .read<TranslateBloc>()
+                                  .add(StopDetectionEvent());
+                            } else {
+                              context
+                                  .read<TranslateBloc>()
+                                  .add(StartDetectionEvent());
+                            }
+                          },
+                          icon:
+                              Icon(isDetecting ? Icons.stop : Icons.play_arrow),
+                          label: Text(
+                            isDetecting ? 'Hentikan' : 'Mulai Deteksi',
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
                     if (isDetecting) ...[
                       const SizedBox(width: 8),
-                      IconButton.filledTonal(
-                        tooltip: 'Simulasi Gesture (Test)',
-                        onPressed: () {
-                          context.read<TranslateBloc>().add(
-                                const GestureDetectedEvent(
-                                  Gesture(label: 'Halo', confidence: 0.98),
-                                ),
-                              );
-                        },
-                        icon: const Icon(Icons.add_circle_outline),
+                      SizedBox(
+                        height: 48,
+                        child: Tooltip(
+                          message: 'Simulasi Alfabet BISINDO',
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () => _showAlphabetPicker(context),
+                            icon: const Icon(Icons.touch_app),
+                            label: const Text('Input Huruf'),
+                          ),
+                        ),
                       ),
                     ],
                   ],
@@ -165,27 +284,42 @@ class TranslatePage extends StatelessWidget {
             const SizedBox(height: 12),
             BlocBuilder<TranslateBloc, TranslateState>(
               builder: (context, state) {
+                String translationText = '';
                 if (state is TranslateStopped &&
                     state.finalTranslation.isNotEmpty) {
-                  return OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () {
-                      final item = HistoryItem(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        text: state.finalTranslation,
-                        timestamp: DateTime.now(),
-                      );
-                      context.read<HistoryBloc>().add(AddHistoryItemEvent(item));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Tersimpan ke Riwayat & Tersinkron ke Backend'),
+                  translationText = state.finalTranslation;
+                } else if (state is TranslateDetecting &&
+                    state.translatedText.isNotEmpty) {
+                  translationText = state.translatedText;
+                }
+
+                if (translationText.isNotEmpty &&
+                    translationText != 'Belum ada deteksi gesture') {
+                  return SizedBox(
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.bookmark_add_outlined),
-                    label: const Text('Simpan ke Riwayat'),
+                      ),
+                      onPressed: () {
+                        final item = HistoryItem(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          text: translationText,
+                          timestamp: DateTime.now(),
+                        );
+                        context.read<HistoryBloc>().add(AddHistoryItemEvent(item));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Tersimpan ke Riwayat dan tersinkron ke backend Supabase'),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.bookmark_add_outlined),
+                      label: const Text('Simpan ke Riwayat'),
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
@@ -197,4 +331,3 @@ class TranslatePage extends StatelessWidget {
     );
   }
 }
-

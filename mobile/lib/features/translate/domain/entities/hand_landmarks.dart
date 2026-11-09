@@ -42,7 +42,45 @@ class HandSkeleton extends Equatable {
     [0, 17],
   ];
 
+  /// Standard normalized 21-landmark hand skeleton for rendering and testing
+  factory HandSkeleton.sample({
+    String handedness = 'Right',
+    double confidence = 0.95,
+  }) {
+    return HandSkeleton(
+      handedness: handedness,
+      confidence: confidence,
+      landmarks: const [
+        NormalizedLandmark(x: 0.50, y: 0.80), // 0: Wrist
+        // Thumb
+        NormalizedLandmark(x: 0.44, y: 0.74), // 1
+        NormalizedLandmark(x: 0.39, y: 0.67), // 2
+        NormalizedLandmark(x: 0.35, y: 0.60), // 3
+        NormalizedLandmark(x: 0.33, y: 0.53), // 4
+        // Index
+        NormalizedLandmark(x: 0.46, y: 0.57), // 5
+        NormalizedLandmark(x: 0.44, y: 0.48), // 6
+        NormalizedLandmark(x: 0.43, y: 0.41), // 7
+        NormalizedLandmark(x: 0.42, y: 0.35), // 8
+        // Middle
+        NormalizedLandmark(x: 0.50, y: 0.56), // 9
+        NormalizedLandmark(x: 0.50, y: 0.45), // 10
+        NormalizedLandmark(x: 0.50, y: 0.38), // 11
+        NormalizedLandmark(x: 0.50, y: 0.32), // 12
+        // Ring
+        NormalizedLandmark(x: 0.54, y: 0.57), // 13
+        NormalizedLandmark(x: 0.55, y: 0.47), // 14
+        NormalizedLandmark(x: 0.56, y: 0.41), // 15
+        NormalizedLandmark(x: 0.57, y: 0.36), // 16
+        // Pinky
+        NormalizedLandmark(x: 0.58, y: 0.61), // 17
+        NormalizedLandmark(x: 0.60, y: 0.54), // 18
+        NormalizedLandmark(x: 0.61, y: 0.48), // 19
+        NormalizedLandmark(x: 0.62, y: 0.43), // 20
+      ],
+    );
+  }
+
   @override
   List<Object?> get props => [landmarks, handedness, confidence];
 }
-

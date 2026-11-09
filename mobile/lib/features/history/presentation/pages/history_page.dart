@@ -67,23 +67,30 @@ class _HistoryPageState extends State<HistoryPage> {
                 child: Text('Belum ada riwayat terjemahan.'),
               );
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: state.items.length,
-              itemBuilder: (context, index) {
-                final item = state.items[index];
-                return HistoryItemTile(
-                  item: item,
-                  onDelete: () {
-                    context.read<HistoryBloc>().add(DeleteHistoryItemEvent(item.id));
-                  },
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Terpilih: "${item.text}"')),
-                    );
-                  },
-                );
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<HistoryBloc>().add(LoadHistoryEvent());
               },
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: state.items.length,
+                itemBuilder: (context, index) {
+                  final item = state.items[index];
+                  return HistoryItemTile(
+                    item: item,
+                    onDelete: () {
+                      context
+                          .read<HistoryBloc>()
+                          .add(DeleteHistoryItemEvent(item.id));
+                    },
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Terpilih: "${item.text}"')),
+                      );
+                    },
+                  );
+                },
+              ),
             );
           } else if (state is HistoryError) {
             return Center(
