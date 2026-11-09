@@ -104,7 +104,7 @@ class BisindoLandmarkClassifier {
     final thumbToMiddleMcp = _dist(lm[4], lm[9]) / palmSize;
     final thumbAngle = _angleDeg(lm[1], lm[2], lm[4]);
     final thumbOut =
-        thumbToIndexMcp > 0.65 && thumbToMiddleMcp > 0.72 && thumbAngle > 138.0;
+        thumbToIndexMcp > 0.45 && thumbToMiddleMcp > 0.50 && thumbAngle > 135.0;
 
     final pinchIndex = _dist(lm[4], lm[8]) / palmSize;
     final pinchMiddle = _dist(lm[4], lm[12]) / palmSize;
@@ -190,28 +190,8 @@ class BisindoLandmarkClassifier {
           !f2.ringExt &&
           !f2.pinkyExt;
 
-      // 1a. BISINDO X vs BISINDO A vs BISINDO H vs BISINDO T (when both hands use index finger)
+      // 1a. BISINDO X vs BISINDO T vs BISINDO A vs BISINDO W vs BISINDO H (when both hands use index finger)
       if (bothOnlyIndex) {
-        final indexSegmentsCross = _segmentsIntersect(
-          f1.lm[5],
-          f1.lm[8],
-          f2.lm[5],
-          f2.lm[8],
-        );
-        // Tips crossed horizontally past each other (left hand tip is to the right of right hand tip)
-        final tipsCrossedHorizontally = f1.lm[8].x >= f2.lm[8].x - 0.02 * avgPalm;
-        // Shafts (DIP/PIP) are closer than or comparable to tips, while thumbs are NOT forming a triangle base
-        final shaftsClose =
-            (dIndexDips < 0.72 || dIndexPips < 0.82) &&
-            (dIndexDips <= dIndexTips * 1.15 || dIndexPips <= dIndexTips * 1.20);
-
-        // BISINDO X: Two index fingers crossed in an X
-        if (indexSegmentsCross ||
-            (tipsCrossedHorizontally && (dIndexDips < 0.85 || dIndexPips < 0.90)) ||
-            (shaftsClose && dThumbTips > 0.65)) {
-          return const Gesture(label: 'X', confidence: 0.95);
-        }
-
         // BISINDO T: One vertical index and one horizontal index resting on its top tip
         if ((f1.isHorizontal && !f2.isHorizontal) ||
             (!f1.isHorizontal && f2.isHorizontal)) {
@@ -229,30 +209,60 @@ class BisindoLandmarkClassifier {
           }
         }
 
-        // BISINDO A: Index tips meet at top (/\) AND thumbs meet horizontally below (--)
+        final indexSegmentsCross = _segmentsIntersect(
+          f1.lm[5],
+          f1.lm[8],
+          f2.lm[5],
+          f2.lm[8],
+        );
+        // Tips crossed horizontally past each other (left hand tip is to the right of right hand tip)
+        final tipsCrossedHorizontally =
+            f1.lm[8].x >= f2.lm[8].x - 0.03 * avgPalm;
+        // Both index fingers angled inward toward each other (/ and \)
+        final angledInward = (f1.lm[8].x - f1.lm[5].x) > 0.04 * avgPalm &&
+            (f2.lm[5].x - f2.lm[8].x) > 0.04 * avgPalm;
+        // Shafts (DIP/PIP) are close
+        final shaftsClose =
+            (dIndexDips < 0.72 || dIndexPips < 0.82) &&
+            (dIndexDips <= dIndexTips * 1.15 || dIndexPips <= dIndexTips * 1.20);
+
+        // Check BISINDO A first if both thumbs are extended out forming the base of triangle
         final avgIndexTipY = (f1.lm[8].y + f2.lm[8].y) / 2.0;
         final avgThumbTipY = (f1.lm[4].y + f2.lm[4].y) / 2.0;
         final thumbsBelowIndexTips =
             (avgThumbTipY - avgIndexTipY) > 0.20 * avgPalm;
-        if (dIndexTips < 0.65 &&
+        if (f1.thumbOut &&
+            f2.thumbOut &&
+            !indexSegmentsCross &&
+            dIndexTips < 0.65 &&
             dIndexTips < dIndexPips &&
             dThumbTips < 0.72 &&
             thumbsBelowIndexTips) {
           return const Gesture(label: 'A', confidence: 0.95);
         }
 
+        // BISINDO X: Two index fingers crossed in an X (thumbs tucked in fists, or shafts/segments crossed)
+        if (indexSegmentsCross ||
+            (tipsCrossedHorizontally && (dIndexDips < 0.85 || dIndexPips < 0.90)) ||
+            (shaftsClose && dThumbTips > 0.65 && (!f1.thumbOut || !f2.thumbOut)) ||
+            (angledInward &&
+                (!f1.thumbOut || !f2.thumbOut) &&
+                (dIndexTips < 0.65 || dIndexDips < 0.72))) {
+          return const Gesture(label: 'X', confidence: 0.95);
+        }
+
         // BISINDO W (2-hand L-shapes touching at thumbs in center /\/\)
         if (f1.thumbOut &&
             f2.thumbOut &&
             dThumbTips < 0.68 &&
-            dIndexTips > 0.75) {
+            dIndexTips >= 0.65) {
           return const Gesture(label: 'W', confidence: 0.94);
         }
 
         // BISINDO H: Two parallel vertical index posts with thumb crossbar (|-|)
         if (!f1.isHorizontal &&
             !f2.isHorizontal &&
-            dIndexTips > 0.40 &&
+            dIndexTips >= 0.40 &&
             dIndexTips < 1.60 &&
             (f1.thumbOut || f2.thumbOut)) {
           return const Gesture(label: 'H', confidence: 0.93);
@@ -476,7 +486,7 @@ class BisindoLandmarkClassifier {
       return const Gesture(label: 'C', confidence: 0.93);
     }
 
-    // 2i. 2 Fingers Extended (Index & Middle, while Ring & Pinky are curled) -> V, U, R
+    // 2i. 2 Fingers Extended Upright (Index & Middle, while Ring & Pinky are curled) -> R, K, V, U
     if (f.indexExt &&
         f.middleExt &&
         !f.ringExt &&
@@ -489,6 +499,11 @@ class BisindoLandmarkClassifier {
       final tipDeltaX = lm[8].x - lm[12].x;
       if (mcpDeltaX * tipDeltaX < 0 || f.indexMiddleSpread < 0.15) {
         return const Gesture(label: 'R', confidence: 0.92);
+      }
+      if (f.indexMiddleSpread >= 0.25 &&
+          f.thumbOut &&
+          _dist(lm[4], lm[6]) / f.palmSize < 0.65) {
+        return const Gesture(label: 'K', confidence: 0.92);
       }
       if (f.indexMiddleSpread >= 0.28) {
         return const Gesture(label: 'V', confidence: 0.95);
@@ -534,6 +549,51 @@ class BisindoLandmarkClassifier {
         !f.thumbOut &&
         f.pinchMiddle < 0.50) {
       return const Gesture(label: 'D', confidence: 0.92);
+    }
+
+    // 2m. X (1-hand): ONLY Index finger hooked/semi-curled, other 3 fingers tightly curled, thumb tucked
+    if (!f.isHorizontal &&
+        !f.isPointingDown &&
+        f.indexSemi &&
+        !f.indexExt &&
+        !f.middleExt &&
+        !f.ringExt &&
+        !f.pinkyExt &&
+        f.middleCurled &&
+        f.ringCurled &&
+        f.pinkyCurled &&
+        !f.thumbOut &&
+        f.pinchIndex >= 0.45) {
+      return const Gesture(label: 'X', confidence: 0.93);
+    }
+
+    // 2n. H vs G (1-hand horizontal):
+    if (f.isHorizontal &&
+        !f.isPointingDown &&
+        !f.ringExt &&
+        !f.pinkyExt &&
+        f.ringCurled &&
+        f.pinkyCurled) {
+      if (f.indexExt && f.middleExt) {
+        return const Gesture(label: 'H', confidence: 0.92);
+      }
+      if (f.indexExt && !f.middleExt && f.middleCurled) {
+        return const Gesture(label: 'G', confidence: 0.92);
+      }
+    }
+
+    // 2o. P vs Q (1-hand pointing down):
+    if (f.isPointingDown &&
+        !f.ringExt &&
+        !f.pinkyExt &&
+        f.ringCurled &&
+        f.pinkyCurled) {
+      if (f.indexExt && f.middleExt) {
+        return const Gesture(label: 'P', confidence: 0.91);
+      }
+      if (f.indexExt && !f.middleExt && f.middleCurled) {
+        return const Gesture(label: 'Q', confidence: 0.91);
+      }
     }
 
     // Any other pose (neutral open palm, relaxed fist, random finger movement) is strictly rejected!
