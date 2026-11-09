@@ -1,12 +1,13 @@
 import 'dart:developer' as dev;
 import 'package:flutter/services.dart';
 import '../../domain/entities/gesture.dart';
+import '../../domain/entities/hand_landmarks.dart';
+import 'bisindo_landmark_classifier.dart';
 import 'tflite_classifier_service.dart';
 
 /// Web implementation of [TfliteClassifierService].
-/// Note: TensorFlow Lite C-bindings (dart:ffi) are unavailable on the Web.
-/// This web implementation provides safe label loading from assets and a fallback
-/// prediction mechanism so that the Flutter app can be developed, previewed, and tested in Chrome.
+/// Uses MediaPipe 21-point 3D Hand Landmarks + [BisindoLandmarkClassifier]
+/// for real-time 1-hand and 2-hand BISINDO gesture recognition on Web/Chrome.
 class TfliteClassifierServiceImpl implements TfliteClassifierService {
   static const String _labelsPath = 'assets/models/labels.txt';
 
@@ -30,7 +31,7 @@ class TfliteClassifierServiceImpl implements TfliteClassifierService {
           .toList();
       _isLoaded = true;
       dev.log(
-        'TFLite Web fallback initialized with ${_labels.length} BISINDO classes (Web Mode)',
+        'BISINDO Web Classifier initialized with ${_labels.length} classes',
         name: 'TfliteClassifierWeb',
       );
     } catch (e) {
@@ -41,10 +42,12 @@ class TfliteClassifierServiceImpl implements TfliteClassifierService {
 
   @override
   Future<Gesture> classify(dynamic input) async {
+    if (input is List<HandSkeleton>) {
+      return BisindoLandmarkClassifier.classifyHands(input);
+    }
     if (_labels.isEmpty) {
       return const Gesture(label: 'A', confidence: 0.90);
     }
-    // Safe web fallback prediction
     return Gesture(
       label: _labels.first,
       confidence: 0.90,

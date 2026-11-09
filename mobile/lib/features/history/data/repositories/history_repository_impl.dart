@@ -14,31 +14,34 @@ class HistoryRepositoryImpl implements HistoryRepository {
 
   @override
   Future<List<HistoryItem>> getHistory() async {
-    // 1. Fetch from local Hive storage first (offline-first)
     final localItems = await localDataSource.getHistoryItems();
-    if (localItems.isNotEmpty) {
-      return localItems;
+    final mergedMap = <String, HistoryItem>{
+      for (final item in localItems) item.id: item,
+    };
+
+    try {
+      final remoteItems = await remoteDataSource.fetchHistory();
+      for (final remoteItem in remoteItems) {
+        if (!mergedMap.containsKey(remoteItem.id)) {
+          mergedMap[remoteItem.id] = remoteItem;
+          await localDataSource.saveHistoryItem(remoteItem);
+        }
+      }
+    } catch (_) {
+      // Offline mode: use cached local items
     }
 
-    // 2. Fall back to backend server if local is empty
-    final remoteItems = await remoteDataSource.fetchHistory();
-    for (final item in remoteItems) {
-      await localDataSource.saveHistoryItem(item);
-    }
-    return remoteItems;
+    final sorted = mergedMap.values.toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return sorted;
   }
 
   @override
   Future<void> saveHistory(HistoryItem item) async {
-    // Save locally to Hive
     await localDataSource.saveHistoryItem(item);
-
-    // Sync to backend asynchronously
     try {
       await remoteDataSource.saveHistoryRemote(item);
-    } catch (_) {
-      // Offline fallback: item is still safely saved locally
-    }
+    } catch (_) {}
   }
 
   @override
@@ -49,5 +52,8 @@ class HistoryRepositoryImpl implements HistoryRepository {
   @override
   Future<void> clearHistory() async {
     await localDataSource.clearHistory();
+    try {
+      await remoteDataSource.clearHistoryRemote();
+    } catch (_) {}
   }
 }

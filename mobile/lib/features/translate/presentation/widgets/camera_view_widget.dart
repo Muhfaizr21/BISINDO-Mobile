@@ -1,5 +1,10 @@
+import 'dart:async';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/di/injection.dart';
+import '../../data/datasources/bisindo_landmark_classifier.dart';
+import '../../domain/entities/gesture.dart';
 import '../../domain/entities/hand_landmarks.dart';
 import '../../domain/services/camera_service.dart';
 import 'hand_landmarks_painter.dart';
@@ -8,26 +13,138 @@ class CameraViewWidget extends StatefulWidget {
   final CameraService cameraService;
   final bool isDetecting;
   final List<HandSkeleton> detectedHands;
+  final ValueChanged<Gesture>? onGestureConfirmed;
 
   const CameraViewWidget({
     super.key,
     required this.cameraService,
     required this.isDetecting,
     this.detectedHands = const [],
+    this.onGestureConfirmed,
   });
 
   @override
   State<CameraViewWidget> createState() => _CameraViewWidgetState();
 }
 
-class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBindingObserver {
+class _CameraViewWidgetState extends State<CameraViewWidget>
+    with WidgetsBindingObserver {
   bool _isLoading = true;
+  Timer? _detectionTimer;
+  List<HandSkeleton> _liveHands = const [];
+  Gesture? _liveGesture;
+
+  String _candidateLabel = '';
+  int _holdFrames = 0;
+  static const int _requiredHoldFrames = 15; // ~0.68s hold to lock letter
+  DateTime? _lastConfirmedAt;
+  String _lastConfirmedLabel = '';
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    sl.handLandmarkerService.initialize();
+    sl.tfliteClassifierService.initialize();
     _initializeCamera();
+    if (widget.isDetecting) {
+      _startRealtimeTracking();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant CameraViewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isDetecting && !oldWidget.isDetecting) {
+      _startRealtimeTracking();
+    } else if (!widget.isDetecting && oldWidget.isDetecting) {
+      _stopRealtimeTracking();
+    }
+  }
+
+  void _startRealtimeTracking() {
+    _detectionTimer?.cancel();
+    _holdFrames = 0;
+    _candidateLabel = '';
+    _detectionTimer = Timer.periodic(
+      const Duration(milliseconds: 45),
+      (_) => _processFrame(),
+    );
+  }
+
+  void _stopRealtimeTracking() {
+    _detectionTimer?.cancel();
+    _detectionTimer = null;
+    if (mounted) {
+      setState(() {
+        _liveHands = const [];
+        _liveGesture = null;
+        _holdFrames = 0;
+        _candidateLabel = '';
+      });
+    }
+  }
+
+  Future<void> _processFrame() async {
+    if (!mounted || !widget.isDetecting) return;
+
+    final results = await sl.handLandmarkerService.detect(null);
+    if (!mounted || !widget.isDetecting) return;
+
+    if (results.isEmpty) {
+      if (_liveHands.isNotEmpty || _liveGesture != null) {
+        setState(() {
+          _liveHands = const [];
+          _liveGesture = null;
+          _holdFrames = 0;
+          _candidateLabel = '';
+        });
+      }
+      return;
+    }
+
+    final skeletons = results.map((r) {
+      return HandSkeleton(
+        handedness: r.handedness,
+        confidence: r.score,
+        landmarks: r.landmarks
+            .map((pt) => NormalizedLandmark(x: pt.x, y: pt.y, z: pt.z))
+            .toList(),
+      );
+    }).toList();
+
+    final classified = BisindoLandmarkClassifier.classifyHands(skeletons);
+
+    if (classified.label.isNotEmpty) {
+      if (classified.label == _candidateLabel) {
+        _holdFrames++;
+      } else {
+        _candidateLabel = classified.label;
+        _holdFrames = 1;
+      }
+
+      if (_holdFrames >= _requiredHoldFrames) {
+        final now = DateTime.now();
+        final cooldownPassed = _lastConfirmedAt == null ||
+            now.difference(_lastConfirmedAt!).inMilliseconds > 1100 ||
+            _lastConfirmedLabel != classified.label;
+
+        if (cooldownPassed) {
+          _lastConfirmedAt = now;
+          _lastConfirmedLabel = classified.label;
+          _holdFrames = 0;
+          widget.onGestureConfirmed?.call(classified);
+        }
+      }
+    } else {
+      _holdFrames = 0;
+      _candidateLabel = '';
+    }
+
+    setState(() {
+      _liveHands = skeletons;
+      _liveGesture = classified.label.isNotEmpty ? classified : null;
+    });
   }
 
   Future<void> _initializeCamera() async {
@@ -54,6 +171,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
 
   @override
   void dispose() {
+    _detectionTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     widget.cameraService.dispose();
     super.dispose();
@@ -75,7 +193,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
               CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 12),
               Text(
-                'Menyiapkan kamera...',
+                'Menyiapkan kamera & MediaPipe...',
                 style: TextStyle(color: Colors.white70),
               ),
             ],
@@ -86,7 +204,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
 
     final controller = widget.cameraService.controller;
 
-    // Fallback if no camera hardware is available (e.g. desktop or some emulators)
+    // Fallback if no camera hardware is available
     if (controller == null || !widget.cameraService.isInitialized) {
       return Container(
         height: 380,
@@ -106,7 +224,8 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
               children: [
                 Icon(
                   widget.isDetecting ? Icons.videocam : Icons.videocam_off,
-                  color: widget.isDetecting ? Colors.greenAccent : Colors.white54,
+                  color:
+                      widget.isDetecting ? Colors.greenAccent : Colors.white54,
                   size: 56,
                 ),
                 const SizedBox(height: 12),
@@ -122,7 +241,8 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
+                  style:
+                      OutlinedButton.styleFrom(foregroundColor: Colors.white),
                   onPressed: _initializeCamera,
                   icon: const Icon(Icons.refresh),
                   label: const Text('Coba Deteksi Kamera Ulang'),
@@ -136,30 +256,94 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
 
     final isFrontCamera = widget.cameraService.currentCamera?.lensDirection ==
         CameraLensDirection.front;
+    final activeHands =
+        _liveHands.isNotEmpty ? _liveHands : widget.detectedHands;
+    final holdProgress =
+        (_holdFrames / _requiredHoldFrames).clamp(0.0, 1.0);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Live Camera Preview
+          // Live Camera Preview with synchronized 21-point Hand Skeleton inside AspectRatio
           SizedBox(
             height: 380,
             width: double.infinity,
-            child: CameraPreview(controller),
-          ),
-
-          // Hand Landmarks Skeleton Overlay
-          Positioned.fill(
-            child: CustomPaint(
-              painter: HandLandmarksPainter(
-                hands: widget.detectedHands,
-                isFrontCamera: isFrontCamera,
+            child: CameraPreview(
+              controller,
+              child: CustomPaint(
+                painter: HandLandmarksPainter(
+                  hands: activeHands,
+                  isFrontCamera: !kIsWeb && isFrontCamera,
+                ),
               ),
             ),
           ),
 
-          // Camera Overlay Controls
+          // Live Gesture Prediction HUD at Top-Left
+          if (widget.isDetecting && _liveGesture != null)
+            Positioned(
+              top: 12,
+              left: 12,
+              child: InkWell(
+                onTap: () => widget.onGestureConfirmed?.call(_liveGesture!),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.cyanAccent.withValues(alpha: 0.8),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          value: holdProgress,
+                          strokeWidth: 3,
+                          backgroundColor: Colors.white24,
+                          color: Colors.cyanAccent,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Huruf: ${_liveGesture!.label} (${(_liveGesture!.confidence * 100).toStringAsFixed(0)}%)',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '${_liveHands.length} tangan • Tahan sebentar / ketuk',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          // Camera Overlay Controls at Top-Right
           Positioned(
             top: 12,
             right: 12,
@@ -173,32 +357,45 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
                       if (mounted) setState(() {});
                     },
                     icon: const Icon(Icons.cameraswitch, color: Colors.white),
-                    style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                    style:
+                        IconButton.styleFrom(backgroundColor: Colors.black54),
                   ),
               ],
             ),
           ),
 
-          // Status Badge at bottom left
+          // Status Badge at Bottom-Left
           Positioned(
             bottom: 12,
             left: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: widget.isDetecting ? Colors.green.withValues(alpha: 0.8) : Colors.black54,
+                color: widget.isDetecting
+                    ? (_liveHands.isNotEmpty
+                        ? Colors.green.withValues(alpha: 0.85)
+                        : Colors.orange.shade800.withValues(alpha: 0.85))
+                    : Colors.black54,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
                   Icon(
-                    widget.isDetecting ? Icons.lens : Icons.pause_circle_outline,
+                    widget.isDetecting
+                        ? (_liveHands.isNotEmpty
+                            ? Icons.back_hand
+                            : Icons.pan_tool_alt_outlined)
+                        : Icons.pause_circle_outline,
                     color: Colors.white,
                     size: 14,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    widget.isDetecting ? 'Mendeteksi Gestur' : 'Standby',
+                    widget.isDetecting
+                        ? (_liveHands.isNotEmpty
+                            ? 'Tangan Terdeteksi (${_liveHands.length})'
+                            : 'Arahkan Tangan ke Kamera')
+                        : 'Standby',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -214,4 +411,3 @@ class _CameraViewWidgetState extends State<CameraViewWidget> with WidgetsBinding
     );
   }
 }
-

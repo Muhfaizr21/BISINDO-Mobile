@@ -14,12 +14,31 @@ class LearnRepositoryImpl implements LearnRepository {
 
   @override
   Future<List<LearnItem>> getLearnMaterials() async {
-    // Attempt local first, then remote as fallback
     final localData = await localDataSource.getCachedLearnMaterials();
-    if (localData.isNotEmpty) {
-      return localData;
+    final localMap = {for (final item in localData) item.id: item};
+
+    try {
+      final remoteData = await remoteDataSource.fetchLearnMaterials();
+      if (remoteData.isNotEmpty) {
+        return remoteData.map((item) {
+          final fallbackImage = localMap[item.id]?.imageAsset;
+          if ((item.imageAsset == null || item.imageAsset!.isEmpty) &&
+              fallbackImage != null) {
+            return LearnItem(
+              id: item.id,
+              title: item.title,
+              description: item.description,
+              category: item.category,
+              imageAsset: fallbackImage,
+            );
+          }
+          return item;
+        }).toList();
+      }
+    } catch (_) {
+      // Fallback to local catalog if offline
     }
-    return await remoteDataSource.fetchLearnMaterials();
+
+    return localData;
   }
 }
-

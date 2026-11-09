@@ -1,46 +1,216 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="BISINDO Sign Language Translator">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="mobile">
+  <meta name="apple-mobile-web-app-title" content="BISINDO Translator">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>mobile</title>
+  <title>Sign Language Translator - BISINDO</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- MediaPipe Hand Landmarker Web Integration -->
+  <script type="module">
+    import {
+      FilesetResolver,
+      HandLandmarker
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+
+    let handLandmarker = null;
+    let isInitializing = false;
+    let initError = null;
+    let lastVideoTime = -1;
+    let lastTimestampMs = 0;
+
+    async function initMediaPipe() {
+      if (handLandmarker || isInitializing) return;
+      isInitializing = true;
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+        );
+        try {
+          handLandmarker = await HandLandmarker.createFromOptions(vision, {
+            baseOptions: {
+              modelAssetPath:
+                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+              delegate: "GPU"
+            },
+            runningMode: "VIDEO",
+            numHands: 2,
+            minHandDetectionConfidence: 0.40,
+            minHandPresenceConfidence: 0.40,
+            minTrackingConfidence: 0.40
+          });
+        } catch (_) {
+          // Fallback to CPU delegate if WebGL GPU delegate is restricted
+          handLandmarker = await HandLandmarker.createFromOptions(vision, {
+            baseOptions: {
+              modelAssetPath:
+                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+              delegate: "CPU"
+            },
+            runningMode: "VIDEO",
+            numHands: 2,
+            minHandDetectionConfidence: 0.40,
+            minHandPresenceConfidence: 0.40,
+            minTrackingConfidence: 0.40
+          });
+        }
+        console.log("[BISINDO MediaPipe] HandLandmarker initialized (2 hands, VIDEO mode).");
+      } catch (err) {
+        initError = String(err);
+        console.error("[BISINDO MediaPipe] Failed to initialize HandLandmarker:", err);
+      } finally {
+        isInitializing = false;
+      }
+    }
+
+    function findActiveVideo(root = document) {
+      const videos = root.querySelectorAll ? root.querySelectorAll("video") : [];
+      for (const v of videos) {
+        if (v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
+          return v;
+        }
+      }
+      const allElements = root.querySelectorAll ? root.querySelectorAll("*") : [];
+      for (const el of allElements) {
+        if (el.shadowRoot) {
+          const found = findActiveVideo(el.shadowRoot);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function isVideoMirrored(video) {
+      const inlineTransform = (video.style && video.style.transform) || "";
+      if (inlineTransform.includes("scaleX(-1)")) return true;
+      try {
+        const computed = window.getComputedStyle(video).transform;
+        if (computed && computed.startsWith("matrix(")) {
+          const parts = computed.slice(7, -1).split(",");
+          const scaleX = parseFloat(parts[0]);
+          if (scaleX < 0) return true;
+        }
+      } catch (_) {}
+      return false;
+    }
+
+    window.bisindoInitMediaPipe = function () {
+      initMediaPipe();
+    };
+
+    window.bisindoDetectFrameJson = function () {
+      if (!handLandmarker) {
+        initMediaPipe();
+        return JSON.stringify({
+          ready: false,
+          initializing: isInitializing,
+          error: initError,
+          videoFound: false,
+          hands: []
+        });
+      }
+
+      const video = findActiveVideo();
+      if (!video) {
+        return JSON.stringify({
+          ready: true,
+          videoFound: false,
+          hands: []
+        });
+      }
+
+      try {
+        let nowMs = Math.floor(performance.now());
+        if (nowMs <= lastTimestampMs) {
+          nowMs = lastTimestampMs + 1;
+        }
+        lastTimestampMs = nowMs;
+
+        const result = handLandmarker.detectForVideo(video, nowMs);
+        const mirrored = isVideoMirrored(video);
+
+        // Compute object-fit: cover mapping from intrinsic video size to rendered container size
+        const vw = video.videoWidth || 640;
+        const vh = video.videoHeight || 480;
+        const cw = video.clientWidth || vw;
+        const ch = video.clientHeight || vh;
+
+        const scale = Math.max(cw / vw, ch / vh);
+        const dw = vw * scale;
+        const dh = vh * scale;
+        const offsetX = (dw - cw) / 2.0;
+        const offsetY = (dh - ch) / 2.0;
+
+        const hands = [];
+        if (result && result.landmarks) {
+          for (let i = 0; i < result.landmarks.length; i++) {
+            const rawLandmarks = result.landmarks[i];
+            const handednessEntry =
+              result.handednesses &&
+              result.handednesses[i] &&
+              result.handednesses[i][0]
+                ? result.handednesses[i][0]
+                : null;
+
+            const handedness = handednessEntry
+              ? handednessEntry.categoryName || "Right"
+              : "Right";
+            const confidence = handednessEntry
+              ? handednessEntry.score || 0.95
+              : 0.95;
+
+            const mappedLandmarks = rawLandmarks.map((lm) => {
+              const rawX = mirrored ? 1.0 - lm.x : lm.x;
+              const screenX = (rawX * dw - offsetX) / cw;
+              const screenY = (lm.y * dh - offsetY) / ch;
+              return {
+                x: Math.max(0.0, Math.min(1.0, screenX)),
+                y: Math.max(0.0, Math.min(1.0, screenY)),
+                z: lm.z || 0.0
+              };
+            });
+
+            hands.push({
+              handedness: handedness,
+              confidence: confidence,
+              landmarks: mappedLandmarks
+            });
+          }
+        }
+
+        return JSON.stringify({
+          ready: true,
+          videoFound: true,
+          hands: hands
+        });
+      } catch (e) {
+        return JSON.stringify({
+          ready: true,
+          videoFound: true,
+          error: String(e),
+          hands: []
+        });
+      }
+    };
+
+    // Start preloading MediaPipe HandLandmarker immediately
+    initMediaPipe();
+  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

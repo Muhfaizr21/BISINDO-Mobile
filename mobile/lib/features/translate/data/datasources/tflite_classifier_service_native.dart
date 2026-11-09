@@ -2,6 +2,8 @@ import 'dart:developer' as dev;
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import '../../domain/entities/gesture.dart';
+import '../../domain/entities/hand_landmarks.dart';
+import 'bisindo_landmark_classifier.dart';
 import 'tflite_classifier_service.dart';
 
 /// Native implementation of [TfliteClassifierService] using TensorFlow Lite (C-FFI).
@@ -46,13 +48,15 @@ class TfliteClassifierServiceImpl implements TfliteClassifierService {
 
   @override
   Future<Gesture> classify(dynamic input) async {
+    if (input is List<HandSkeleton>) {
+      return BisindoLandmarkClassifier.classifyHands(input);
+    }
+
     if (!_isLoaded || _interpreter == null) {
-      // Fallback if model not ready or running in test/mock environment
       return const Gesture(label: 'A', confidence: 0.85);
     }
 
     try {
-      // Prepare output buffer for 26 classes
       final output = List.filled(1 * _labels.length, 0.0).reshape([1, _labels.length]);
       _interpreter!.run(input, output);
 

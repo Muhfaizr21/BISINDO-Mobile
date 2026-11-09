@@ -7,7 +7,6 @@ import '../../../history/domain/entities/history_item.dart';
 import '../../../history/presentation/bloc/history_bloc.dart';
 import '../../../history/presentation/bloc/history_event.dart';
 import '../../domain/entities/gesture.dart';
-import '../../domain/entities/hand_landmarks.dart';
 import '../bloc/translate_bloc.dart';
 import '../bloc/translate_event.dart';
 import '../bloc/translate_state.dart';
@@ -90,6 +89,27 @@ class TranslatePage extends StatelessWidget {
     );
   }
 
+  void _saveToHistory(BuildContext context, String text) {
+    if (text.isEmpty ||
+        text == 'Belum ada deteksi gesture' ||
+        text == 'Mendeteksi gestur...' ||
+        text == 'Deteksi dihentikan') {
+      return;
+    }
+    final item = HistoryItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      text: text,
+      timestamp: DateTime.now(),
+    );
+    context.read<HistoryBloc>().add(AddHistoryItemEvent(item));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tersinkron ke Riwayat & Backend: "$text"'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,8 +137,12 @@ class TranslatePage extends StatelessWidget {
                 return CameraViewWidget(
                   cameraService: sl.cameraService,
                   isDetecting: isDetecting,
-                  detectedHands:
-                      isDetecting ? [HandSkeleton.sample()] : const [],
+                  detectedHands: const [],
+                  onGestureConfirmed: (gesture) {
+                    context
+                        .read<TranslateBloc>()
+                        .add(GestureDetectedEvent(gesture));
+                  },
                 );
               },
             ),
@@ -174,7 +198,8 @@ class TranslatePage extends StatelessWidget {
                                       ClipboardData(text: resultText));
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Teks disalin ke papan klip'),
+                                      content:
+                                          Text('Teks disalin ke papan klip'),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
@@ -239,9 +264,13 @@ class TranslatePage extends StatelessWidget {
                           ),
                           onPressed: () {
                             if (isDetecting) {
+                              final currentText = state.translatedText;
                               context
                                   .read<TranslateBloc>()
                                   .add(StopDetectionEvent());
+                              if (currentText.isNotEmpty) {
+                                _saveToHistory(context, currentText);
+                              }
                             } else {
                               context
                                   .read<TranslateBloc>()
@@ -303,20 +332,7 @@ class TranslatePage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onPressed: () {
-                        final item = HistoryItem(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          text: translationText,
-                          timestamp: DateTime.now(),
-                        );
-                        context.read<HistoryBloc>().add(AddHistoryItemEvent(item));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Tersimpan ke Riwayat dan tersinkron ke backend Supabase'),
-                          ),
-                        );
-                      },
+                      onPressed: () => _saveToHistory(context, translationText),
                       icon: const Icon(Icons.bookmark_add_outlined),
                       label: const Text('Simpan ke Riwayat'),
                     ),
