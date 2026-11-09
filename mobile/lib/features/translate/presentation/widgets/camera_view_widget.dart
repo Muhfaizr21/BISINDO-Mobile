@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -32,11 +33,12 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
   bool _isLoading = true;
   Timer? _detectionTimer;
   List<HandSkeleton> _liveHands = const [];
+  List<HandSkeleton> _prevHands = const [];
   Gesture? _liveGesture;
 
   String _candidateLabel = '';
   int _holdFrames = 0;
-  static const int _requiredHoldFrames = 15; // ~0.68s hold to lock letter
+  static const int _requiredHoldFrames = 18; // ~0.8s steady hold required
   DateTime? _lastConfirmedAt;
   String _lastConfirmedLabel = '';
 
@@ -66,6 +68,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
     _detectionTimer?.cancel();
     _holdFrames = 0;
     _candidateLabel = '';
+    _prevHands = const [];
     _detectionTimer = Timer.periodic(
       const Duration(milliseconds: 45),
       (_) => _processFrame(),
@@ -78,11 +81,33 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
     if (mounted) {
       setState(() {
         _liveHands = const [];
+        _prevHands = const [];
         _liveGesture = null;
         _holdFrames = 0;
         _candidateLabel = '';
       });
     }
+  }
+
+  bool _isHandSteady(List<HandSkeleton> current, List<HandSkeleton> previous) {
+    if (previous.isEmpty || previous.length != current.length) return false;
+    for (int i = 0; i < current.length; i++) {
+      final cWrist = current[i].landmarks[0];
+      final pWrist = previous[i].landmarks[0];
+      final cTip = current[i].landmarks[8];
+      final pTip = previous[i].landmarks[8];
+
+      final wristDelta = math.sqrt(
+        math.pow(cWrist.x - pWrist.x, 2) + math.pow(cWrist.y - pWrist.y, 2),
+      );
+      final tipDelta = math.sqrt(
+        math.pow(cTip.x - pTip.x, 2) + math.pow(cTip.y - pTip.y, 2),
+      );
+      if (wristDelta > 0.042 || tipDelta > 0.055) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<void> _processFrame() async {
@@ -95,6 +120,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
       if (_liveHands.isNotEmpty || _liveGesture != null) {
         setState(() {
           _liveHands = const [];
+          _prevHands = const [];
           _liveGesture = null;
           _holdFrames = 0;
           _candidateLabel = '';
@@ -113,9 +139,14 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
       );
     }).toList();
 
-    final classified = BisindoLandmarkClassifier.classifyHands(skeletons);
+    final isSteady = _isHandSteady(skeletons, _prevHands);
+    _prevHands = skeletons;
 
-    if (classified.label.isNotEmpty) {
+    final classified = BisindoLandmarkClassifier.classifyHands(skeletons);
+    final isValidGesture =
+        classified.label.isNotEmpty && classified.confidence >= 0.88;
+
+    if (isValidGesture && isSteady) {
       if (classified.label == _candidateLabel) {
         _holdFrames++;
       } else {
@@ -126,7 +157,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
       if (_holdFrames >= _requiredHoldFrames) {
         final now = DateTime.now();
         final cooldownPassed = _lastConfirmedAt == null ||
-            now.difference(_lastConfirmedAt!).inMilliseconds > 1100 ||
+            now.difference(_lastConfirmedAt!).inMilliseconds > 1200 ||
             _lastConfirmedLabel != classified.label;
 
         if (cooldownPassed) {
@@ -136,14 +167,14 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
           widget.onGestureConfirmed?.call(classified);
         }
       }
-    } else {
+    } else if (!isValidGesture) {
       _holdFrames = 0;
       _candidateLabel = '';
     }
 
     setState(() {
       _liveHands = skeletons;
-      _liveGesture = classified.label.isNotEmpty ? classified : null;
+      _liveGesture = isValidGesture ? classified : null;
     });
   }
 
@@ -204,7 +235,6 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
 
     final controller = widget.cameraService.controller;
 
-    // Fallback if no camera hardware is available
     if (controller == null || !widget.cameraService.isInitialized) {
       return Container(
         height: 380,
@@ -266,7 +296,7 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Live Camera Preview with synchronized 21-point Hand Skeleton inside AspectRatio
+          // Live Camera Preview with synchronized 21-point Hand Skeleton
           SizedBox(
             height: 380,
             width: double.infinity,
@@ -282,65 +312,99 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
           ),
 
           // Live Gesture Prediction HUD at Top-Left
-          if (widget.isDetecting && _liveGesture != null)
+          if (widget.isDetecting && _liveHands.isNotEmpty)
             Positioned(
               top: 12,
               left: 12,
-              child: InkWell(
-                onTap: () => widget.onGestureConfirmed?.call(_liveGesture!),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.75),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.cyanAccent.withValues(alpha: 0.8),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          value: holdProgress,
-                          strokeWidth: 3,
-                          backgroundColor: Colors.white24,
-                          color: Colors.cyanAccent,
+              child: _liveGesture != null
+                  ? InkWell(
+                      onTap: () => widget.onGestureConfirmed?.call(_liveGesture!),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.78),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.cyanAccent.withValues(alpha: 0.85),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                value: holdProgress,
+                                strokeWidth: 3,
+                                backgroundColor: Colors.white24,
+                                color: Colors.cyanAccent,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Huruf: ${_liveGesture!.label} (${(_liveGesture!.confidence * 100).toStringAsFixed(0)}%)',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                Text(
+                                  '${_liveHands.length} tangan • Tahan stabil / ketuk',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.72),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.75),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: Colors.amberAccent,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
                           Text(
-                            'Huruf: ${_liveGesture!.label} (${(_liveGesture!.confidence * 100).toStringAsFixed(0)}%)',
+                            'Gerakan belum sesuai abjad BISINDO (${_liveHands.length} tangan)',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            '${_liveHands.length} tangan • Tahan sebentar / ketuk',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
             ),
 
           // Camera Overlay Controls at Top-Right
@@ -373,7 +437,9 @@ class _CameraViewWidgetState extends State<CameraViewWidget>
               decoration: BoxDecoration(
                 color: widget.isDetecting
                     ? (_liveHands.isNotEmpty
-                        ? Colors.green.withValues(alpha: 0.85)
+                        ? (_liveGesture != null
+                            ? Colors.green.withValues(alpha: 0.85)
+                            : Colors.blueGrey.shade800.withValues(alpha: 0.85))
                         : Colors.orange.shade800.withValues(alpha: 0.85))
                     : Colors.black54,
                 borderRadius: BorderRadius.circular(20),
